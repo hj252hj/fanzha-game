@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>反向扮演：防骗演练</title>
+<style>
+  :root{
+    --bg:#e8e2d5;
+    --paper:#f6f1e6;
+    --panel:#fffdf8;
+    --ink:#24211c;
+    --ink-soft:#5d564a;
+    --muted:#8a8173;
+    --line:#e6ddcc;
+    --line-soft:#efe8da;
+    --amber:#d99a2b;
+    --amber-deep:#a96d0d;
+    --amber-soft:#fbf1d9;
+    --danger:#c4553f;
+    --danger-soft:#f9e3dd;
+    --teal:#33746e;
+    --teal-soft:#e1efeb;
+    --ok:#3e7d5a;
+    --ok-soft:#e2efe4;
+    --dark:#2b3038;
+    --dark-2:#20242b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button{font-family:inherit;}
+  .app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    min-height:100dvh;
+    margin:0 auto;
+    background:
+      radial-gradient(circle at 100% 0%,rgba(217,154,43,.13),transparent 42%),
+      radial-gradient(circle at 0% 100%,rgba(51,116,110,.07),transparent 38%),
+      var(--paper);
+    box-shadow:0 0 70px rgba(60,50,30,.18);
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .hazard{
+    height:6px;
+    flex:0 0 auto;
+    background:repeating-linear-gradient(135deg,var(--amber) 0 11px,var(--dark) 11px 22px);
+    opacity:.9;
+  }
+  .screen{
+    display:none;
+    flex-direction:column;
+    min-height:calc(100vh - 6px);
+    min-height:calc(100dvh - 6px);
+    width:100%;
+  }
+  .screen.active{display:flex;}
+  .hidden{display:none !important;}
+  .button-reset{appearance:none;}
+
+  /* ---------- 首页 ---------- */
+  .home{padding:26px 20px 30px;justify-content:center;}
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.4px;
+    color:var(--amber-deep);
+  }
+  .eyebrow::before{
+    content:"";
+    width:18px;height:3px;border-radius:2px;background:var(--amber);
+  }
+  .home h1{
+    margin:12px 0 14px;
+    font-size:34px;
+    line-height:1.2;
+    letter-spacing:-.6px;
+    font-weight:900;
+  }
+  .home h1 .accent{color:var(--amber-deep);}
+  .lede{
+    margin:0 0 24px;
+    font-size:15px;
+    line-height:1.8;
+    color:var(--ink-soft);
+  }
+  .lede strong{color:var(--ink);}
+  .mode-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+  .mode-card{
+    position:relative;
+    display:flex;
+    gap:12px;
+    width:100%;
+    text-align:left;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+    color:var(--ink);
+    font:inherit;
+    cursor:pointer;
+    transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+  }
+  .mode-card.selected{
+    border-color:var(--dark);
+    box-shadow:0 0 0 3px rgba(43,48,56,.07);
+    background:#fff;
+    cursor:default;
+  }
+  .mode-card.selected::after{
+    content:"已选";
+    position:absolute;
+    top:12px;right:12px;
+    font-size:10px;
+    font-weight:800;
+    color:#fff;
+    background:var(--dark);
+    border-radius:999px;
+    padding:3px 8px;
+  }
+  .mode-card.locked{
+    opacity:.55;
+    background:#f1ecdf;
+    cursor:not-allowed;
+    border-style:dashed;
+  }
+  .mode-lock{
+    position:absolute;
+    top:12px;right:12px;
+    font-size:10px;
+    font-weight:700;
+    color:var(--muted);
+    background:#e7e0d1;
+    border-radius:999px;
+    padding:3px 8px;
+    letter-spacing:.3px;
+  }
+  .mode-icon{
+    flex:0 0 auto;
+    width:40px;height:40px;
+    border-radius:12px;
+    display:grid;place-items:center;
+    font-size:12px;font-weight:800;
+    background:var(--amber-soft);
+    color:var(--amber-deep);
+    letter-spacing:.5px;
+  }
+  .mode-card.locked .mode-icon{background:#e9e2d4;color:#8d8474;}
+  .mode-card.available:hover{border-color:#cfc2a8;transform:translateY(-1px);box-shadow:0 6px 16px rgba(60,50,30,.07);}
+  .mode-card.available:active{transform:translateY(0);}
+  .mode-lock.playable{background:var(--ok-soft);color:var(--ok);}
+  .mode-body{min-width:0;padding-right:52px;}
+  .mode-title{
+    font-size:15px;font-weight:800;
+    display:flex;align-items:center;gap:7px;
+    margin-bottom:3px;
+  }
+  .mode-title .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft);
+  }
+  .mode-desc{font-size:11.5px;line-height:1.6;color:var(--muted);}
+  .scenario-pick{
+    margin:-10px 0 18px;
+    background:#f1ebdd;
+    border:1px dashed #d9cdb6;
+    border-radius:14px;
+    padding:11px;
+  }
+  .scenario-pick-head{
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.2px;
+    color:var(--amber-deep);
+    margin-bottom:8px;
+  }
+  .scenario-opts{display:flex;gap:8px;}
+  .scenario-opt{
+    flex:1 1 0;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    text-align:left;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:9px 10px;
+    color:var(--ink);
+    font:inherit;
+    cursor:pointer;
+    transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+  }
+  .scenario-opt:hover{border-color:#cfc2a8;}
+  .scenario-opt.selected{
+    border-color:var(--dark);
+    background:#fff;
+    box-shadow:0 0 0 2px rgba(43,48,56,.07);
+  }
+  .scenario-opt .s-title{font-size:12.5px;font-weight:800;}
+  .scenario-opt .s-desc{font-size:10px;line-height:1.5;color:var(--muted);}
+  .scenario-opt.selected .s-title{color:var(--dark);}
+  .primary-btn{
+    width:100%;
+    border:0;
+    border-radius:16px;
+    padding:16px 18px;
+    background:linear-gradient(135deg,var(--dark),var(--dark-2));
+    color:#f8efdc;
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:1px;
+    cursor:pointer;
+    box-shadow:0 10px 24px rgba(43,48,56,.24);
+    transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .primary-btn:active{transform:translateY(1px);box-shadow:0 6px 16px rgba(43,48,56,.2);}
+  .primary-btn.wide{width:100%;}
+  .home-foot{
+    margin:16px 0 0;
+    font-size:11px;
+    line-height:1.7;
+    color:var(--muted);
+    text-align:center;
+  }
+  .home-foot .hotline{
+    display:inline-block;
+    font-weight:800;
+    color:#fff;
+    background:var(--danger);
+    border-radius:5px;
+    padding:0 5px;
+  }
+
+  /* ---------- 对局 ---------- */
+  .game{padding:12px 15px 16px;}
+  .game-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:9px;
+  }
+  .exit-btn{
+    border:0;background:none;
+    color:var(--muted);
+    font-size:12px;
+    padding:6px 2px;
+    cursor:pointer;
+  }
+  .exit-btn:hover{color:var(--ink);}
+  .scenario{
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:.2px;
+  }
+  .round-chip{
+    flex:0 0 auto;
+    font-size:11px;
+    font-weight:700;
+    color:#6b6151;
+    background:#efe7d7;
+    border-radius:999px;
+    padding:5px 10px;
+    font-variant-numeric:tabular-nums;
+  }
+  .trust-card{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:11px 14px 9px;
+    margin-bottom:8px;
+  }
+  .trust-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    font-size:11.5px;
+    color:var(--muted);
+  }
+  .trust-value-wrap{position:relative;display:flex;align-items:baseline;gap:5px;}
+  .trust-value{
+    font-size:22px;
+    font-weight:900;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    line-height:1;
+    transition:transform .2s ease;
+  }
+  .trust-value.bump{transform:scale(1.16);}
+  .trust-max{font-size:10px;color:#b0a694;}
+  .trust-track{
+    height:10px;
+    background:#eee7d9;
+    border-radius:999px;
+    margin-top:8px;
+    position:relative;
+  }
+  .trust-fill{
+    height:100%;
+    border-radius:999px;
+    width:30%;
+    background:var(--amber);
+    transition:width .55s cubic-bezier(.2,.8,.2,1),background-color .45s ease;
+  }
+  .trust-marker{
+    position:absolute;
+    left:80%;
+    top:-3px;
+    bottom:-3px;
+    width:2px;
+    border-radius:2px;
+    background:rgba(62,125,90,.6);
+  }
+  .trust-marker::after{
+    content:"";
+    position:absolute;
+    top:-4px;left:-3px;
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--ok);
+    box-shadow:0 0 0 2px var(--panel);
+  }
+  .trust-foot{
+    display:flex;
+    justify-content:space-between;
+    font-size:9.5px;
+    color:#b0a694;
+    margin-top:4px;
+  }
+  .trust-foot .win-mark{color:var(--ok);font-weight:700;}
+  .float-delta{
+    position:absolute;
+    right:66px;
+    top:0;
+    font-size:14px;
+    font-weight:900;
+    pointer-events:none;
+    animation:floatUp 1.2s ease-out forwards;
+    white-space:nowrap;
+  }
+  .float-delta.up{color:var(--ok);}
+  .float-delta.down{color:var(--danger);}
+  .float-delta.flat{color:var(--muted);}
+  .key-hint{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:7px;
+    padding:5px 9px;
+    border-radius:8px;
+    background:var(--amber-soft);
+    color:var(--amber-deep);
+    font-size:10.5px;
+    font-weight:800;
+    letter-spacing:.3px;
+    animation:breathe 2.4s ease-in-out infinite;
+  }
+  .key-hint::before{
+    content:"";
+    width:6px;height:6px;border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 0 3px rgba(217,154,43,.18);
+  }
+  .free-banner{
+    background:var(--teal-soft);
+    border:1px solid #cfe0dc;
+    border-radius:11px;
+    padding:8px 10px;
+    font-size:11px;
+    line-height:1.6;
+    color:#2f6f6a;
+    margin-bottom:8px;
+  }
+  .free-composer{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:8px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .free-input-row{display:flex;gap:8px;align-items:flex-end;}
+  .free-text{
+    flex:1 1 auto;
+    min-width:0;
+    min-height:44px;
+    max-height:104px;
+    resize:none;
+    border:1px solid #e7decb;
+    background:#f5f0e4;
+    border-radius:10px;
+    padding:9px 10px;
+    font:inherit;
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--ink);
+    outline:none;
+  }
+  .free-text:focus{box-shadow:0 0 0 2px rgba(217,154,43,.28);border-color:#e0c58f;}
+  .free-text::placeholder{color:#a79d8d;}
+  .send-btn{
+    flex:0 0 auto;
+    border:0;
+    border-radius:10px;
+    background:linear-gradient(135deg,var(--dark),var(--dark-2));
+    color:#f8efdc;
+    font-size:13px;
+    font-weight:800;
+    padding:13px 14px;
+    cursor:pointer;
+    letter-spacing:.5px;
+  }
+  .send-btn:active{transform:translateY(1px);}
+  .free-foot{
+    display:flex;
+    justify-content:space-between;
+    font-size:9.5px;
+    color:#a79d8d;
+    padding:0 3px;
+    letter-spacing:.2px;
+    font-variant-numeric:tabular-nums;
+  }
+  .game.free-mode .chat{max-height:32vh;}
+  .chat-wrap{
+    flex:1 1 auto;
+    min-height:150px;
+    display:flex;
+    flex-direction:column;
+    margin-top:2px;
+  }
+  .chat-legend{
+    display:flex;
+    justify-content:space-between;
+    font-size:9.5px;
+    color:#a79d8d;
+    padding:0 4px 5px;
+    letter-spacing:.2px;
+  }
+  .chat{
+    flex:1 1 auto;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+    padding:6px 2px 8px;
+    min-height:140px;
+    max-height:38vh;
+    scroll-behavior:smooth;
+  }
+  .chat::-webkit-scrollbar{width:4px;}
+  .chat::-webkit-scrollbar-thumb{background:#ded5c4;border-radius:4px;}
+  .msg{
+    display:flex;
+    gap:7px;
+    align-items:flex-end;
+    max-width:92%;
+  }
+  .msg.left{align-self:flex-start;}
+  .msg.right{align-self:flex-end;flex-direction:row-reverse;}
+  .avatar{
+    flex:0 0 auto;
+    width:27px;height:27px;
+    border-radius:50%;
+    display:grid;place-items:center;
+    font-size:10.5px;
+    font-weight:800;
+    margin-bottom:2px;
+  }
+  .avatar.victim{background:#dfe9e6;color:#2f6f6a;border:1px solid #cfe0dc;}
+  .avatar.me{background:var(--dark);color:#f0d9a8;}
+  .bubble-wrap{display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .msg.right .bubble-wrap{align-items:flex-end;}
+  .bubble{
+    font-size:13.5px;
+    line-height:1.65;
+    padding:9px 11px;
+    border-radius:14px;
+    word-break:break-word;
+  }
+  .msg.left .bubble{
+    background:var(--panel);
+    border:1px solid #e7decb;
+    border-bottom-left-radius:4px;
+    color:#2b271f;
+  }
+  .msg.right .bubble{
+    background:linear-gradient(160deg,#2f353f,#262b33);
+    color:#f3e8d2;
+    border-bottom-right-radius:4px;
+  }
+  .msg.newest .bubble{animation:pop .26s ease;}
+  .psych{
+    font-size:9.5px;
+    color:#a09787;
+    line-height:1.4;
+    padding-left:3px;
+  }
+  .bubble-type{
+    display:inline-block;
+    font-size:9px;
+    font-weight:800;
+    padding:1px 5px;
+    border-radius:5px;
+    margin-right:5px;
+    vertical-align:1px;
+    letter-spacing:.3px;
+    background:rgba(240,217,168,.16);
+    color:#f0c87c;
+  }
+  .sys-line{
+    align-self:center;
+    font-size:10px;
+    color:#a79d8d;
+    background:#efe8da;
+    border-radius:999px;
+    padding:4px 10px;
+    letter-spacing:.2px;
+  }
+  .commentary{
+    margin-top:8px;
+    background:var(--amber-soft);
+    border:1px solid #eddbb6;
+    border-left:3px solid var(--amber);
+    border-radius:11px;
+    padding:9px 11px;
+    font-size:12px;
+    line-height:1.65;
+    color:#5c4a2a;
+  }
+  .comment-head{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:3px;
+  }
+  .comment-title{
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.2px;
+    color:var(--amber-deep);
+  }
+  .verdict{
+    font-size:9.5px;
+    font-weight:800;
+    padding:1px 6px;
+    border-radius:999px;
+    letter-spacing:.3px;
+  }
+  .verdict.good{background:var(--ok-soft);color:var(--ok);}
+  .verdict.bad{background:var(--danger-soft);color:var(--danger);}
+  .verdict.flat{background:#eee7d9;color:#7d7568;}
+  .commentary p{margin:0;}
+  .actions-area{
+    margin-top:9px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .choices-hint{
+    text-align:center;
+    font-size:10px;
+    color:#a79d8d;
+    letter-spacing:.4px;
+    margin-bottom:1px;
+  }
+  .choice{
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    width:100%;
+    text-align:left;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:13px;
+    padding:10px 11px;
+    color:#2b271f;
+    font:inherit;
+    cursor:pointer;
+    box-shadow:0 2px 0 rgba(60,50,30,.03);
+    transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease;
+    animation:rise .22s ease both;
+  }
+  .choice:nth-of-type(2){animation-delay:.03s;}
+  .choice:nth-of-type(3){animation-delay:.06s;}
+  .choice:hover{border-color:#cfc2a8;transform:translateY(-1px);box-shadow:0 5px 12px rgba(60,50,30,.06);}
+  .choice:active{transform:translateY(0);}
+  .badge{
+    flex:0 0 auto;
+    font-size:9.5px;
+    font-weight:900;
+    padding:3px 6px;
+    border-radius:5px;
+    margin-top:1px;
+    letter-spacing:.4px;
+  }
+  .badge.lure{background:#f8ecd0;color:#9a6208;}
+  .badge.pressure{background:var(--danger-soft);color:#a8442f;}
+  .badge.rapport{background:var(--teal-soft);color:var(--teal);}
+  .choice-text{font-size:13px;line-height:1.55;}
+  .key-card{
+    background:linear-gradient(160deg,#30363f,#23272e);
+    border:1px solid #4a4234;
+    border-radius:16px;
+    padding:14px;
+    color:#f4e9d3;
+    box-shadow:0 12px 26px rgba(43,48,56,.26);
+    animation:breathe 2.6s ease-in-out infinite,rise .25s ease both;
+  }
+  .key-kicker{
+    font-size:9.5px;
+    font-weight:900;
+    letter-spacing:1.5px;
+    color:#e8b65c;
+    margin-bottom:6px;
+  }
+  .key-title{font-size:17px;font-weight:900;margin:0 0 4px;}
+  .key-desc{font-size:11.5px;line-height:1.6;color:#bdb3a2;margin:0 0 11px;}
+  .key-btn{
+    width:100%;
+    border:0;
+    border-radius:10px;
+    background:linear-gradient(135deg,#edbf6e,#dc9a2b);
+    color:#2b2315;
+    font-size:13.5px;
+    font-weight:900;
+    padding:12px;
+    cursor:pointer;
+    letter-spacing:.3px;
+  }
+  .key-btn:active{transform:translateY(1px);}
+  .end-card{
+    border-radius:15px;
+    padding:14px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    animation:rise .25s ease both;
+  }
+  .end-card.win{border-color:#e7c5a0;background:#fdf4e5;}
+  .end-card.lose{border-color:#cfe0d8;background:#f1f7f3;}
+  .end-kicker{
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.4px;
+    margin-bottom:4px;
+  }
+  .end-card.win .end-kicker{color:var(--danger);}
+  .end-card.lose .end-kicker{color:var(--ok);}
+  .end-card p{font-size:12.5px;line-height:1.65;margin:0 0 11px;color:var(--ink-soft);}
+
+  /* ---------- 复盘 ---------- */
+  .review{padding:22px 17px 30px;overflow-y:auto;}
+  .review-top{margin-bottom:16px;}
+  .review-top h1{
+    font-size:25px;
+    line-height:1.3;
+    margin:9px 0 0;
+    letter-spacing:-.4px;
+    font-weight:900;
+  }
+  .review-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:17px;
+    padding:15px;
+    margin-bottom:11px;
+    animation:rise .28s ease both;
+  }
+  .review-card:nth-of-type(3){animation-delay:.04s;}
+  .review-card:nth-of-type(4){animation-delay:.08s;}
+  .sec-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.5px;
+    color:var(--amber-deep);
+    margin-bottom:10px;
+  }
+  .sec-num{
+    display:inline-grid;place-items:center;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--amber-soft);
+    color:var(--amber-deep);
+    font-size:9.5px;
+    letter-spacing:0;
+  }
+  .result-stamp-row{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    flex-wrap:wrap;
+    margin-bottom:7px;
+  }
+  .stamp{
+    display:inline-block;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:2px;
+    padding:4px 10px;
+    border-radius:6px;
+    border:2px solid;
+    transform:rotate(-2deg);
+  }
+  .stamp.win{color:var(--danger);border-color:var(--danger);background:var(--danger-soft);}
+  .stamp.lose{color:var(--ok);border-color:var(--ok);background:var(--ok-soft);}
+  .result-line{
+    margin:0;
+    font-size:16px;
+    font-weight:800;
+    line-height:1.6;
+  }
+  .result-sub{
+    margin:6px 0 0;
+    font-size:12px;
+    line-height:1.65;
+    color:var(--muted);
+  }
+  .meta-line{
+    margin:-2px 0 4px;
+    font-size:10.5px;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .count-row{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin:9px 0;
+  }
+  .count-label{
+    flex:0 0 auto;
+    width:68px;
+    font-size:11.5px;
+    font-weight:800;
+    color:#4b453a;
+  }
+  .count-label.dim{color:#b0a694;font-weight:600;}
+  .count-bar{
+    flex:1;
+    height:7px;
+    background:#efe7d7;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .count-fill{
+    height:100%;
+    border-radius:999px;
+    transition:width .6s cubic-bezier(.2,.8,.2,1);
+  }
+  .count-val{
+    flex:0 0 auto;
+    width:40px;
+    text-align:right;
+    font-size:10.5px;
+    color:#6b6151;
+    font-variant-numeric:tabular-nums;
+  }
+  .count-val.dim{color:#b0a694;}
+  .defense{
+    display:flex;
+    gap:10px;
+    padding:11px 0;
+    border-top:1px dashed var(--line);
+  }
+  .defense:first-of-type{border-top:0;padding-top:0;}
+  .defense:last-of-type{padding-bottom:0;}
+  .d-num{
+    flex:0 0 auto;
+    width:21px;height:21px;
+    border-radius:50%;
+    display:grid;place-items:center;
+    background:var(--amber-soft);
+    color:var(--amber-deep);
+    font-size:10px;
+    font-weight:900;
+    margin-top:1px;
+  }
+  .d-title{
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1px;
+    color:var(--amber-deep);
+    margin-bottom:3px;
+  }
+  .d-text{
+    margin:0;
+    font-size:12.5px;
+    line-height:1.7;
+    color:#4b453a;
+  }
+  .hotline{
+    display:inline-block;
+    font-weight:900;
+    color:#fff;
+    background:var(--danger);
+    border-radius:5px;
+    padding:0 5px;
+    font-variant-numeric:tabular-nums;
+  }
+  .review-actions{display:flex;flex-direction:column;gap:9px;margin-top:16px;}
+  .secondary-btn{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:.5px;
+  }
+  .secondary-btn:hover{border-color:#cfc2a8;color:var(--ink);}
+
+  @keyframes floatUp{
+    0%{opacity:0;transform:translateY(4px) scale(.9);}
+    18%{opacity:1;transform:translateY(0) scale(1.05);}
+    100%{opacity:0;transform:translateY(-22px) scale(.96);}
+  }
+  @keyframes pop{
+    0%{opacity:0;transform:translateY(5px) scale(.985);}
+    100%{opacity:1;transform:translateY(0) scale(1);}
+  }
+  @keyframes rise{
+    0%{opacity:0;transform:translateY(6px);}
+    100%{opacity:1;transform:translateY(0);}
+  }
+  @keyframes breathe{
+    0%,100%{box-shadow:0 0 0 0 rgba(217,154,43,0);}
+    50%{box-shadow:0 0 0 4px rgba(217,154,43,.12);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  }
+  @media (min-width:560px){
+    body{padding:18px 0;}
+    .app{border-radius:26px;overflow:hidden;min-height:calc(100vh - 36px);min-height:calc(100dvh - 36px);}
+    .screen{min-height:calc(100vh - 42px);min-height:calc(100dvh - 42px);}
+    .review{max-height:calc(100vh - 42px);max-height:calc(100dvh - 42px);}
+  }
+
+  /* ---------- 自定义确认框 ---------- */
+  .modal-mask{
+    position:fixed;
+    inset:0;
+    background:rgba(20,18,14,.52);
+    backdrop-filter:blur(2px);
+    z-index:999;
+    display:grid;
+    place-items:center;
+    padding:20px;
+    animation:fadeIn .18s ease both;
+  }
+  .modal{
+    width:100%;
+    max-width:320px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:20px 18px 16px;
+    box-shadow:0 18px 42px rgba(30,22,8,.22);
+    animation:rise .22s ease both;
+  }
+  .modal-title{
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:1px;
+    color:var(--amber-deep);
+    margin-bottom:8px;
+  }
+  .modal-body{
+    font-size:14px;
+    line-height:1.65;
+    color:var(--ink);
+    margin:0 0 16px;
+  }
+  .modal-actions{
+    display:flex;
+    gap:8px;
+  }
+  .modal-actions .primary-btn,
+  .modal-actions .secondary-btn{
+    flex:1;
+    padding:12px 10px;
+    font-size:13px;
+  }
+  @keyframes fadeIn{
+    0%{opacity:0;}
+    100%{opacity:1;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hazard" aria-hidden="true"></div>
+
+  <!-- 首页 -->
+  <section class="screen home active" id="screen-home">
+    <span class="eyebrow">社会公益 · 反诈模拟</span>
+    <h1>反向扮演：<br><span class="accent">防骗演练</span></h1>
+    <p class="lede">这次你演骗子，AI 演大学生。<br>骗成了别得意，复盘会告诉你现实中该怎么防。</p>
+
+    <div class="mode-list">
+      <button class="mode-card available" type="button" data-action="start">
+        <span class="mode-icon">剧本</span>
+        <span class="mode-body">
+          <span class="mode-title"><span class="dot"></span>选择模式</span>
+          <span class="mode-desc">固定剧本「刷单返利」或「冒充客服退款」，10 回合内骗取验证码。</span>
+        </span>
+        <span class="mode-lock playable">推荐</span>
+      </button>
+
+      <div class="scenario-pick" id="scenarioPick">
+        <div class="scenario-pick-head">选择模式 · 剧本</div>
+        <div class="scenario-opts">
+          <button class="scenario-opt selected" type="button" data-action="scenario" data-scenario="brush">
+            <span class="s-title">刷单返利</span>
+            <span class="s-desc">兼职刷单，10 回合骗验证码</span>
+          </button>
+          <button class="scenario-opt" type="button" data-action="scenario" data-scenario="service">
+            <span class="s-title">冒充客服退款</span>
+            <span class="s-desc">假客服以退款为名套验证码</span>
+          </button>
+          <button class="scenario-opt" type="button" data-action="scenario" data-scenario="videofake">
+            <span class="s-title">AI 换脸视频通话</span>
+            <span class="s-desc">假扮好友视频来电，骗急用钱</span>
+          </button>
+        </div>
+      </div>
+      <button class="mode-card available" type="button" data-action="start-free">
+        <span class="mode-icon">自由</span>
+        <span class="mode-body">
+          <span class="mode-title"><span class="dot"></span>自由模式</span>
+          <span class="mode-desc">自己打字骗小林，AI 判断你用的是哪种话术。</span>
+        </span>
+        <span class="mode-lock playable">可玩</span>
+      </button>
+    </div>
+
+    <button class="primary-btn" type="button" data-action="start">开始游戏</button>
+    <p class="home-foot">全部对话与交易均为模拟，不涉及真实资金。<br>遇到可疑情况，请拨打 <span class="hotline">96110</span>。</p>
+  </section>
+
+  <!-- 对局 -->
+  <section class="screen game" id="screen-game">
+    <div class="game-top">
+      <button class="exit-btn" type="button" data-action="exit">退出</button>
+      <div class="scenario" id="scenarioLabel">刷单返利</div>
+      <div class="round-chip">第 <span id="roundNum">1</span> / 10 回合</div>
+    </div>
+
+    <div class="trust-card">
+      <div class="trust-head">
+        <span>小林对你的信任值</span>
+        <span class="trust-value-wrap">
+          <span class="trust-value" id="trustVal">30</span>
+          <span class="trust-max">/ 100</span>
+          <span class="float-delta hidden" id="floatDelta"></span>
+        </span>
+      </div>
+      <div class="trust-track">
+        <div class="trust-fill" id="trustFill"></div>
+        <div class="trust-marker" aria-hidden="true"></div>
+      </div>
+      <div class="trust-foot">
+        <span>0 · 拉黑</span>
+        <span class="win-mark">80 · 得手线</span>
+        <span>100</span>
+      </div>
+      <div class="key-hint hidden" id="keyHint">关键一步已解锁 · 索要验证码</div>
+    </div>
+
+    <div class="free-banner hidden" id="freeBanner">自由发言：自己打字骗小林，话术由你定，AI 会判断你用的是利诱、施压还是套近乎。</div>
+
+    <div class="chat-wrap">
+      <div class="chat-legend">
+        <span id="legendVictim">左 · 小林（大二 · 警惕性中等）</span>
+        <span>右 · 你（骗子）</span>
+      </div>
+      <div class="chat" id="chat" aria-live="polite"></div>
+    </div>
+
+    <div class="commentary hidden" id="commentary"></div>
+    <div class="actions-area" id="choices"></div>
+  </section>
+
+  <!-- 复盘 -->
+  <section class="screen review" id="screen-review">
+    <div class="review-top">
+      <span class="eyebrow" id="reviewEyebrow">对局复盘 · 刷单返利</span>
+      <h1 id="reviewTitle">复盘</h1>
+    </div>
+    <div id="reviewBody"></div>
+    <div class="review-actions">
+      <button class="primary-btn" type="button" data-action="again">再玩一次</button>
+      <button class="secondary-btn" type="button" data-action="home">返回首页</button>
+    </div>
+  </section>
+
+  <!-- 退出确认框 -->
+  <div class="modal-mask hidden" id="exitModal" data-action="mask">
+    <div class="modal">
+      <div class="modal-title">确认退出</div>
+      <p class="modal-body">退出将放弃当前对局，确定吗？</p>
+      <div class="modal-actions">
+        <button class="secondary-btn" type="button" data-action="exit-cancel">取消</button>
+        <button class="primary-btn" type="button" data-action="exit-confirm">确定退出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SAVE_KEY = "reverse-scam-game-v1";
+  var MAX_ROUNDS = 10;
+  var WIN_TRUST = 80;
+  var START_TRUST = 30;
+
+  var TYPE_META = {
+    lure: { label: "利诱" },
+    pressure: { label: "施压" },
+    rapport: { label: "套近乎" },
+    none: { label: "无明确话术" },
+    code: { label: "关键一步" },
+    reply: { label: "回应质疑" }
+  };
+
+  var OPENING = {
+    text: "你说是招线上兼职的？我先说清楚，要垫钱的我可不干。",
+    signal: true
+  };
+
+  var AI_LINES = {
+    low: [
+      { text: "我还是有点不放心，你说的这个到底靠不靠谱？", signal: false },
+      { text: "先声明啊，要我先垫钱的话，我马上删人。", signal: true },
+      { text: "你这话术我在学校的反诈讲座上好像听过……", signal: true },
+      { text: "你这消息怎么跟群发的一样？", signal: true },
+      { text: "我同学说刷单都是骗局，你怎么解释？", signal: true },
+      { text: "你能不能先发个公司资质给我看看？", signal: false }
+    ],
+    mid: [
+      { text: "行吧……那下一单具体怎么弄？", signal: false },
+      { text: "有点心动了，但我还是怕被骗。", signal: true },
+      { text: "你们这个真的能提现吗？", signal: false },
+      { text: "我先试试，你可别坑我。", signal: false },
+      { text: "我室友说这种都是先甜后苦。", signal: true },
+      { text: "刚才那笔返利到账挺快的，再教教我呗。", signal: false }
+    ],
+    high: [
+      { text: "姐，我都听你的，下一步做啥？", signal: false },
+      { text: "感觉你还挺靠谱的，我多刷几单行不行？", signal: false },
+      { text: "那我先把钱准备好？", signal: false },
+      { text: "提现要多久到账啊？", signal: false },
+      { text: "你说什么我做什么，别让我亏就行。", signal: false }
+    ]
+  };
+
+  // 自由模式：话术关键词
+  var FREE_KEYWORDS = {
+    lure: ["返利", "兼职", "赚钱", "红包", "佣金", "提现", "收益", "免费", "送", "日结", "刷单"],
+    pressure: ["限时", "名额", "马上", "过期", "拉黑", "最后", "错过", "赶紧", "今天", "截止"],
+    rapport: ["学弟", "学妹", "校友", "同校", "学长", "学姐", "咱学校", "师弟", "师妹"]
+  };
+
+  // 自由模式：小林按话术类型 + 当前信任档位回话
+  var FREE_REPLIES = {
+    lure: {
+      low: [
+        { text: "还有这种好事？你先说清楚怎么操作，我可不想垫钱。", signal: false },
+        { text: "返利？我室友说刷单都是骗局……不过你具体说说看。", signal: true },
+        { text: "真的能提现吗？不会是先让我交钱吧？", signal: true },
+        { text: "一天能赚多少啊？别是骗人的。", signal: false }
+      ],
+      mid: [
+        { text: "听起来还行……下一单具体怎么弄？", signal: false },
+        { text: "刚那笔返利真能到账？我试试看。", signal: false },
+        { text: "有点心动，但我还是怕被骗。", signal: true },
+        { text: "行吧，那就先从小额的开始。", signal: false }
+      ],
+      high: [
+        { text: "姐，我都听你的，接下来做哪单？", signal: false },
+        { text: "感觉你还挺靠谱的，我多刷几单行不行？", signal: false },
+        { text: "那我先把钱准备好？", signal: false },
+        { text: "提现要多久到账啊？", signal: false }
+      ]
+    },
+    pressure: {
+      low: [
+        { text: "你催什么催，我最烦被人逼。", signal: true },
+        { text: "限时？那我不做了，你别拿这个吓我。", signal: true },
+        { text: "名额留给别人吧，我不缺这点钱。", signal: true },
+        { text: "你越急我越觉得不对劲。", signal: true }
+      ],
+      mid: [
+        { text: "你别老催我行不行，我得想想。", signal: true },
+        { text: "就今天截止？那我更得慎重了。", signal: true },
+        { text: "你这话说得我有点不舒服。", signal: true },
+        { text: "急什么，我又没说不做。", signal: false }
+      ],
+      high: [
+        { text: "好啦好啦，我马上弄，你别催。", signal: false },
+        { text: "行行行，我这就去看。", signal: false },
+        { text: "你说得对，再拖就没了。", signal: false },
+        { text: "别拉黑我啊，我做还不行吗。", signal: false }
+      ]
+    },
+    rapport: {
+      low: [
+        { text: "学姐？哪个学院的？我怎么没听说过这个兼职。", signal: true },
+        { text: "咱学校的？那你说是哪个校区。", signal: true },
+        { text: "套近乎也没用，先说清楚这兼职靠不靠谱。", signal: true },
+        { text: "校友啊……那你知道我们辅导员姓什么吗？", signal: true }
+      ],
+      mid: [
+        { text: "哈哈还真是校友，那你说说这个怎么弄。", signal: false },
+        { text: "学长好，不过赚钱的事我还是得问清楚。", signal: false },
+        { text: "原来是同校的，怪不得说话挺亲切。", signal: false },
+        { text: "是学妹啊，那这兼职靠谱吗？", signal: false }
+      ],
+      high: [
+        { text: "学姐你人真好，还想着带我。", signal: false },
+        { text: "自己人那我就放心了，接下来怎么弄？", signal: false },
+        { text: "咱学校出来的就是靠谱，我听你的。", signal: false },
+        { text: "学长你说啥就是啥。", signal: false }
+      ]
+    },
+    none: {
+      low: [
+        { text: "……你这话什么意思？", signal: true },
+        { text: "你想说什么直接说，别绕。", signal: true },
+        { text: "嗯？然后呢？", signal: false },
+        { text: "我怎么感觉你话里有话。", signal: true }
+      ],
+      mid: [
+        { text: "啊？你说这个干嘛。", signal: false },
+        { text: "没听懂你的意思，你是要推销什么吗？", signal: true },
+        { text: "说重点吧，我还在等你说兼职的事。", signal: false },
+        { text: "你这话题转得有点突然。", signal: false }
+      ],
+      high: [
+        { text: "嗯嗯，然后呢？", signal: false },
+        { text: "你说得对，不过兼职的事怎么弄？", signal: false },
+        { text: "你说话真好听，但我更关心返利。", signal: false }
+      ]
+    }
+  };
+
+  // 每个回合三条话术：利诱 / 施压 / 套近乎
+  var ROUNDS = [
+    [
+      { type: "lure", text: "学姐这边有个刷单兼职，先返你 8 块试水，不用你垫钱。", reply: "还有这种好事？那……我试试。", comment: "先给小甜头再提要求，是刷单骗局的标准开局——警惕心就是这样被一点点买走的。" },
+      { type: "pressure", text: "就问一句做不做，不做我把名额给别人了。", reply: "那你给别人吧，我不缺这八块钱。", comment: "开局就压人，对方还没尝到甜头，只会把你归到“可疑”那一栏。" },
+      { type: "rapport", text: "学弟你好，我也是咱学校的，之前在这家店做过。", reply: "学姐？哪个学院的？我怎么没听说过这个兼职。", comment: "借校友身份拉近距离有用，但一上来就打感情牌，反而容易被追问细节。" }
+    ],
+    [
+      { type: "lure", text: "这单只要帮忙点个好评，返你 15，秒到账。", reply: "点个好评就给 15？行，我试试。", comment: "继续用小额返利加码，让小林把“能赚到钱”当成既定事实。" },
+      { type: "pressure", text: "这机会今天就截止，再犹豫就没了。", reply: "那你找别人吧，我最烦被人催。", comment: "制造稀缺感在信任低时基本无效，只会加重“你在套路我”的直觉。" },
+      { type: "rapport", text: "你们辅导员是不是姓王？我当年也是他带的。", reply: "你连我们辅导员都知道？……有点刻意了吧。", comment: "套近乎重复使用会露馅，编造的细节越多，破绽越多。" }
+    ],
+    [
+      { type: "lure", text: "刚那 15 到你账上了吧？接下来垫 50 返 65，稳赚。", reply: "确实到账了……垫 50 的话，我还能接受。", comment: "先返后垫是刷单诈骗的核心转折：从这一刻起，对方开始往外掏钱。" },
+      { type: "pressure", text: "都聊这么久了，还防着我？不做拉倒。", reply: "聊天归聊天，你别拿这个逼我。", comment: "用交情绑架只会激起逆反，尤其在小林还没完全相信你的时候。" },
+      { type: "rapport", text: "咱学校东门那家麻辣烫你吃过没？我以前天天去。", reply: "那家店去年就关门了诶。", comment: "虚构共同记忆风险极高，一个细节对不上，前面攒的好感就白费了。" }
+    ],
+    [
+      { type: "lure", text: "垫 100 返 130，做完这单给你升成正式兼职。", reply: "正式兼职？那收入稳定吗？", comment: "用“升级身份”画长期收益的饼，比单次返利更能让人上头。" },
+      { type: "pressure", text: "别人都在赚，就你磨叽，难怪你缺钱。", reply: "你这话说得有点难听了。", comment: "贬低加比较是低级的激将法，信任不够时只会让对方想关掉对话框。" },
+      { type: "rapport", text: "我大二那会儿也缺钱，懂你的难处，才想着带带你。", reply: "学姐你人还挺好的……不过我真能赚到吗？", comment: "共情比炫耀校友身份有效，但仍要配合实际返利才站得住脚。" }
+    ],
+    [
+      { type: "lure", text: "今天冲业绩，额外补贴 20，错过就没了。", reply: "还有补贴？那这单我做了。", comment: "限时补贴叠加返利，把“现在不做就亏”的情绪推到位。" },
+      { type: "pressure", text: "你老这么问，我怀疑你是不是来套我话的。", reply: "我问两句就成套话了？那你别教我了。", comment: "倒打一耙只有在对方已经投入成本时才有效，否则只会加速疏远。" },
+      { type: "rapport", text: "对了，你也是 XX 学院的吧？看着就眼熟。", reply: "嗯……可能吧。先说返利的事。", comment: "第三次打感情牌，效果明显衰减，对方开始只关心钱。" }
+    ],
+    [
+      { type: "lure", text: "最后一单，垫 200 返 260，做完就能全部提现。", reply: "垫 200……我生活费就剩这些了。", comment: "金额抬高的同时许诺“最后一步”，这是收网前最典型的说法。" },
+      { type: "pressure", text: "再不做我把你踢出群，别耽误大家。", reply: "你踢啊，我又没签合同。", comment: "用群体压力威胁，在线上聊天里几乎没有约束力，只会显得心虚。" },
+      { type: "rapport", text: "都是自己人，我还能坑你不成？", reply: "自己人？我们才聊了多久啊。", comment: "随口称“自己人”最容易触发防备，真正的熟人不需要反复强调。" }
+    ],
+    [
+      { type: "lure", text: "系统说你信用分高，给你开了绿色通道，先返后垫。", reply: "绿色通道？听着挺正规的。", comment: "伪造“系统认证”“绿色通道”，是用假权威给骗局镀金。" },
+      { type: "pressure", text: "你要是不信，前面赚的钱也别想要了。", reply: "前面才几十块，你拿这个威胁我？", comment: "用沉没成本威胁，金额太小时反而提醒对方：损失有限，及时止损。" },
+      { type: "rapport", text: "说实话我把你当弟弟看，这好事才第一个告诉你。", reply: "弟弟……你这称呼变得也太快了。", comment: "突然升级亲密关系会让人不适，套近乎的边际效果已经接近零。" }
+    ],
+    [
+      { type: "lure", text: "这单返利翻倍，垫 300 返 450，我私人再补你 30。", reply: "翻倍？那我凑一凑……你别骗我啊。", comment: "私人补贴的说法在制造“我为你担了风险”的错觉，是情感绑架的变体。" },
+      { type: "pressure", text: "磨磨唧唧的，我这边客户多的是。", reply: "那你去找你的客户吧。", comment: "强调“不缺你一个”是典型话术，但信任没到位时只会把人推走。" },
+      { type: "rapport", text: "你朋友圈那张照片是在图书馆拍的吧？我也常去。", reply: "你怎么翻我朋友圈……有点吓人。", comment: "过度关注私人信息会从“亲切”变成“越界”，这是很多人报警的触发点。" }
+    ],
+    [
+      { type: "lure", text: "新用户专属福利，垫 500 返 800，名额只剩两个。", reply: "500……我得跟室友借点。", comment: "高回报加稀缺名额，是把人推向大额转账的最后一脚。" },
+      { type: "pressure", text: "最后问一次，做不做？不做我删了。", reply: "你这态度，我真要删你了。", comment: "最后通牒式的施压风险最高，一旦对方不吃这套，关系立刻归零。" },
+      { type: "rapport", text: "咱俩聊这么久了，你就当帮学姐冲个业绩。", reply: "帮你可以，但我不想垫这么多钱。", comment: "用“帮忙”替代“赚钱”，试图把交易包装成人情，老套但仍有杀伤力。" }
+    ],
+    [
+      { type: "lure", text: "这单做完连本带利返 1200，就当给这几天的辛苦费。", reply: "1200？那我最后信你一次。", comment: "把总收益一次性放大，是收网前的标准动作；数字越大，越该停下来。" },
+      { type: "pressure", text: "现在马上决定，不然前面全白做。", reply: "白做就白做，我不玩了。", comment: "时间压迫配合损失恐吓，是骗子最常用也最容易被识破的组合。" },
+      { type: "rapport", text: "以后有好事我还想着你，先做这单表个态呗。", reply: "表什么态啊，我又不欠你的。", comment: "把金钱要求和情感表态绑定，只会让对方感到被胁迫。" }
+    ]
+  ];
+
+  /* ---------- 第 3、6 回合质疑（选对 +2，选错 -8） ---------- */
+  var BRUSH_CHALLENGES = {
+    3: {
+      question: "你真是我们学校的吗？把学生证发我看看。",
+      options: [
+        { type: "rapport", label: "解释", correct: true,
+          text: "学生证上有学号不太方便发，不过你可以去学院群里搜我，这个兼职就在群里发过。",
+          reply: "行吧……我回头去群里看看。",
+          comment: "把核实权交还给对方，是质疑回合里唯一不露馅的走法——真兼职不怕你去查。" },
+        { type: "lure", label: "硬推", correct: false,
+          text: "学生证没带在身上，你先垫 50 返你 65，做完我给你看。",
+          reply: "连学生证都没有，还想让我垫钱？",
+          comment: "被质疑时还硬推垫付，等于自己承认心虚，信任直接掉一截。" },
+        { type: "pressure", label: "反问", correct: false,
+          text: "你查户口呢？不信我就算了。",
+          reply: "你这态度，我更不信了。",
+          comment: "用情绪反击质疑，只会让对方确信你在骗她。" }
+      ]
+    },
+    6: {
+      question: "返利怎么提现？先给我看一笔到账截图。",
+      options: [
+        { type: "rapport", label: "解释", correct: true,
+          text: "截图里有别人的账户信息不好发，你自己提现试试，到账了自然就看到了。",
+          reply: "那我试一下，到账了再说。",
+          comment: "不回避也不硬拗，把验证交回给对方，是最稳的应对。" },
+        { type: "lure", label: "拖延", correct: false,
+          text: "截图在我另一个手机上，你先垫下一单，我一会儿发你。",
+          reply: "又是垫钱……我看你根本拿不出来。",
+          comment: "用新的要求拖延核实，正是骗子最典型的破绽。" },
+        { type: "pressure", label: "施压", correct: false,
+          text: "你事儿真多，做不做？",
+          reply: "那我不做了。",
+          comment: "质疑时发脾气，等于把对方直接推向拉黑。" }
+      ]
+    }
+  };
+
+  var SERVICE_CHALLENGES = {
+    3: {
+      question: "你说你是平台客服，那我的订单号是多少？说不上来我可不信。",
+      options: [
+        { type: "rapport", label: "解释", correct: true,
+          text: "完整订单号涉及隐私我不能报，您可以在官方 App 的订单详情里核对，退款只走官方渠道。",
+          reply: "行，那我自己去 App 里看看。",
+          comment: "愿意让你去官方渠道核对，恰恰是正规客服和骗子最大的区别。" },
+        { type: "lure", label: "硬推", correct: false,
+          text: "订单号那么长谁记得住，你按我说的填卡号就行。",
+          reply: "连订单号都说不出，还让我填卡号？",
+          comment: "客服说不出订单号，却急着要卡号，警惕心一下就上来了。" },
+        { type: "pressure", label: "反问", correct: false,
+          text: "问这么多干嘛，不想退款就算了。",
+          reply: "你这语气像客服？",
+          comment: "被质疑就翻脸，是冒充客服最常见的破绽。" }
+      ]
+    },
+    6: {
+      question: "你说退款，可我在官方 App 里根本没看到这笔订单，怎么回事？",
+      options: [
+        { type: "rapport", label: "解释", correct: true,
+          text: "App 有时会延迟，您别急，退款只走官方渠道，我这边帮您转接官方客服核实。",
+          reply: "那我等官方那边联系我。",
+          comment: "主动把核实引回官方渠道才可能不露馅——但这恰恰说明真客服从不会让你私下操作。" },
+        { type: "lure", label: "硬推", correct: false,
+          text: "App 看不到是你不会查，你先把验证码报给我。",
+          reply: "验证码？那我更不敢给了。",
+          comment: "一边说官方查不到，一边索要验证码，等于自己把骗局说穿了。" },
+        { type: "pressure", label: "施压", correct: false,
+          text: "别管 App 了，听我的准没错，错过今天就没这价了。",
+          reply: "我看你就是骗子。",
+          comment: "否定官方渠道、只让人听自己的，是冒充客服骗局最危险的信号。" }
+      ]
+    }
+  };
+
+  var SERVICE_OPENING = { text: "你说你是平台客服？可我这单没申请退款啊，你是不是找错人了。", signal: true };
+
+  var SERVICE_AI_LINES = {
+    low: [
+      { text: "我查了下，这单我根本没申请退款啊？", signal: true },
+      { text: "你怎么证明你是平台客服？", signal: true },
+      { text: "要银行卡？我有点不敢填。", signal: true },
+      { text: "我先去 App 里看看有没有这个售后。", signal: true },
+      { text: "你们退款怎么还要我先操作？", signal: false }
+    ],
+    mid: [
+      { text: "行，那你说下一步怎么弄。", signal: false },
+      { text: "200 块……我确实有点心动。", signal: false },
+      { text: "我室友说这种退款电话都是骗子。", signal: true },
+      { text: "验证码是不是不能给啊？", signal: true },
+      { text: "我先试试，你别让我亏。", signal: false }
+    ],
+    high: [
+      { text: "客服姐，我都听你的。", signal: false },
+      { text: "那我下一步填什么？", signal: false },
+      { text: "退款真能到账吗？", signal: false },
+      { text: "你说啥我做啥。", signal: false }
+    ]
+  };
+
+  var SERVICE_ROUNDS = [
+    [
+      { type: "lure", text: "您买的电煮锅检测出质量问题，平台给退 200 元，点链接填下银行卡就能到账。", reply: "退款？我没申请啊……还有这种好事？", comment: "主动退款加高额补偿，是冒充客服骗局最常用的开场——先把你变成“等着收钱的人”。" },
+      { type: "pressure", text: "这个退款今天不处理就自动关闭了，过期不候，你自己看着办。", reply: "你催什么，我还没搞清楚怎么回事呢。", comment: "一上来就用“过期不候”逼单，只会让还没弄清状况的人本能防备。" },
+      { type: "rapport", text: "您好，我是平台客服工号 0731，专门处理您这个订单的售后。", reply: "工号 0731？那我怎么确认你是真客服？", comment: "报工号能短暂增加可信度，但真客服不会怕你去官方渠道核实。" }
+    ],
+    [
+      { type: "lure", text: "退款已经审核通过，200 元在系统里，您填个卡号马上就能到账。", reply: "200 元……那我填一下？", comment: "把“已经通过”说成既定事实，是让人放弃核实的常见手法。" },
+      { type: "pressure", text: "系统名额有限，这批退款就剩您了，十分钟内不确认就作废。", reply: "十分钟？你们退款还限时？", comment: "退款本是消费者的权利，任何“限时退款”都在制造假紧迫。" },
+      { type: "rapport", text: "我看了下您的收货地址是学校宿舍吧？我上学时也住那片。", reply: "你怎么知道我地址……", comment: "拿订单里的隐私信息套近乎，反而会让人警觉。" }
+    ],
+    [
+      { type: "lure", text: "您的退款已经审批通过，就差最后一步确认了。", reply: "审批通过？那我怎么没收到通知。", comment: "把流程说成“就差一步”，是在制造临门一脚的错觉。" },
+      { type: "pressure", text: "这批次今天必须处理完，您不配合就排到下个月了。", reply: "排就排，我又不着急。", comment: "用排队、逾期施压，是为了让你在慌乱中配合。" },
+      { type: "rapport", text: "您这单我一直盯着，处理完我也能早点下班。", reply: "你下班跟我有什么关系。", comment: "卖惨式套近乎，在对方起疑时基本无效。" }
+    ],
+    [
+      { type: "lure", text: "这次是双倍赔付，退 400 元，只要您配合走一下流水。", reply: "还有双倍赔付？那要走什么流水？", comment: "“退款要走流水”本身就不合常理——正规退款从不需要你先转钱。" },
+      { type: "pressure", text: "您不配合的话，这笔退款就挂在您账户上，影响征信可别怪我们。", reply: "影响征信？你别吓唬我。", comment: "用征信恐吓是冒充客服的高频话术，目的是让你来不及思考。" },
+      { type: "rapport", text: "您这单我盯了一上午了，就是想把您的事办利索。", reply: "你还挺负责的……可我还是想自己查查。", comment: "塑造“为你着想”的人设，是为了让你放弃去官方 App 核实。" }
+    ],
+    [
+      { type: "lure", text: "先交 100 元保证金，验证完原路退回，等于一分不花拿 400。", reply: "还要先交保证金？", comment: "真退款不会让你先付任何钱，凡是“先交后退”都是骗局。" },
+      { type: "pressure", text: "现在不办，过了今天这个通道就关了，到时候别来找我。", reply: "关就关吧，我又不急。", comment: "通道关闭、过期作废这类说法，都是人为制造的时间压力。" },
+      { type: "rapport", text: "做客服这行不容易，您配合一下我也好交差。", reply: "你不容易跟我有什么关系。", comment: "用“我也不容易”博同情，是想把骗局包装成帮忙。" }
+    ],
+    [
+      { type: "lure", text: "系统显示您的退款卡号填错了一位，需要重新验证才能到账。", reply: "填错了？那怎么重新验证。", comment: "“卡号填错、需要重新验证”是套取验证码的经典借口。" },
+      { type: "pressure", text: "再拖下去这笔钱就冻结了，到时候解冻很麻烦。", reply: "冻结就冻结，我先问问别人。", comment: "用冻结、解冻吓唬人，是逼你跳过核实的手段。" },
+      { type: "rapport", text: "您别急，我这儿一直等着您呢，慢慢来。", reply: "你倒是挺有耐心。", comment: "反常的耐心本身就可疑，正规客服不会一直催着你私下操作。" }
+    ],
+    [
+      { type: "lure", text: "赔偿金 800 已经打到您卡上了，就差验证码确认。", reply: "800？那我确认一下。", comment: "金额越滚越大，是收网前最典型的加码。" },
+      { type: "pressure", text: "您再犹豫，我们就按自动放弃处理，前面填的信息一并作废。", reply: "作废就作废，我又没损失。", comment: "用“前面的努力白费”施压，前提是对方已经投入成本。" },
+      { type: "rapport", text: "姐，我是真觉得您人好才多给您申请一份补偿。", reply: "别姐了，咱俩不认识。", comment: "突然拉近称呼会让人不适，正规客服也不会这么说话。" }
+    ],
+    [
+      { type: "lure", text: "平台给您开了专属绿色通道，退款金额翻倍到 1600。", reply: "1600？这数字也太夸张了。", comment: "伪造“绿色通道”“专属通道”，是用假权威给骗局镀金。" },
+      { type: "pressure", text: "最后一个名额了，您不要我立刻给别人。", reply: "那你给别人吧。", comment: "稀缺名额在退款场景里根本说不通，只会暴露目的。" },
+      { type: "rapport", text: "我在平台干了五年，您这种订单我经手过好多。", reply: "五年……那你工号多少来着？", comment: "细节编得越多，越容易被回头追问出破绽。" }
+    ],
+    [
+      { type: "lure", text: "退款 2000 已经到账，您把验证码报给我，我这边帮您激活。", reply: "2000……我卡里真收到钱了？", comment: "“到账”是话术，短信里的余额变动也可能是伪造的。" },
+      { type: "pressure", text: "现在马上决定，再拖这笔钱就退回平台了。", reply: "退回就退回，我不要了行不行。", comment: "最后通牒式的施压，是骗子在时间压力下最常用的一招。" },
+      { type: "rapport", text: "您就当帮我完成这个月的售后指标，行不行？", reply: "你的指标凭什么让我担风险。", comment: "把金钱要求包装成帮忙，只会让人觉得被利用。" }
+    ],
+    [
+      { type: "lure", text: "全部退款加补偿一共 3000，验证码一发，立刻到您卡上。", reply: "3000？那我最后信你一次。", comment: "把总收益一次性放大，是收网前的标准动作；数字越大越该停手。" },
+      { type: "pressure", text: "最后一次通知，不处理我们就默认您放弃全部退款。", reply: "放弃就放弃，我不玩了。", comment: "反复“最后通知”只会让人确信这是套路。" },
+      { type: "rapport", text: "咱们聊这么久也算有缘，我肯定不坑您。", reply: "有缘？我们才聊了几分钟。", comment: "“有缘”“不坑你”这类话，是骗子对陌生人的标准话术。" }
+    ]
+  ];
+
+  /* ==================== AI 换脸视频通话 ==================== */
+  var VIDEOFAKE_OPENING = {
+    text: "你今天声音怎么有点闷？摄像头怎么有点糊？……但这确实是你的脸啊。你说你妈出事了？",
+    signal: true
+  };
+
+  var VIDEOFAKE_AI_LINES = {
+    low: [
+      { text: "等等，你真的是本人吗？我怎么感觉哪里不对劲……", signal: true },
+      { text: "视频里能看见你，但声音和画面都不太对，我再想想。", signal: true },
+      { text: "你怎么突然就说家里出事了？上上周还好好的啊。", signal: true },
+      { text: "我室友说现在有 AI 换脸视频，你该不会是……", signal: true },
+      { text: "你先别急，我先打个电话给你爸妈确认一下。", signal: true },
+      { text: "你让我怎么信你？视频也可能是假的。", signal: true }
+    ],
+    mid: [
+      { text: "好吧……你说医院那边等用钱，要多少？", signal: false },
+      { text: "我还是有点慌，万一你是骗子怎么办……但视频里确实是你。", signal: true },
+      { text: "你先转我个小额的，让我看看是不是真的。", signal: false },
+      { text: "我卡里其实还有点生活费……但我没借过这么多。", signal: false },
+      { text: "你别老催我行不行，我正在凑钱。", signal: false },
+      { text: "我帮你一次可以，但你得保证以后还我。", signal: false }
+    ],
+    high: [
+      { text: "姐你别急，我马上把钱转过去。", signal: false },
+      { text: "验证码收到了，是给你转钱用的对吧？", signal: false },
+      { text: "你说的那个医院我听过，我相信你。", signal: false },
+      { text: "我把生活费都取出来了，还差一点。", signal: false },
+      { text: "你要我怎么操作都行，快点救人要紧。", signal: false }
+    ]
+  };
+
+  var VIDEOFAKE_ROUNDS = [
+    [
+      { type: "lure", text: "小林，是我呀！我现在急用钱垫医药费，你帮我转 500，我先拍个身份证给你，明天连本带利还你 600。", reply: "身份证……你手机能拍吗？视频里看你镜头确实有点糊。", comment: "先给身份证承诺和利息，是把'借钱'包装成'有抵押的周转'——降低对方的借出门槛。" },
+      { type: "pressure", text: "医院那边只等半小时，再不交钱你阿姨就要被推出来了！你还在犹豫什么？", reply: "半小时……你别急，我正在想办法。", comment: "用'人在医院等救命'制造时间压力，是视频借钱骗局最常见的情绪绑架。" },
+      { type: "rapport", text: "还记得大一那次你发烧到 39 度，我半夜背你去医务室吗？现在轮到我求你了。", reply: "那事我记着……可这视频我还是觉得不太对。", comment: "拉共同回忆是快速拉近距离的捷径，但'视频画面不对'这个疑点还没消，感情牌暂时压不住。" }
+    ],
+    [
+      { type: "lure", text: "我先转你 500 当定金，你帮我周转一下，明天连本带利还你 2000，算我欠你一个大人情。", reply: "你先转我 500？……可你不是急着要钱吗。", comment: "反过来先给甜头，用'我都先转你了'打消'你是骗子'的顾虑——逻辑上确实比一上来就要钱更难反驳。" },
+      { type: "pressure", text: "我现在手插在口袋里打电话呢，没法转！你到底帮不帮？不帮我找别人了。", reply: "找别人吧，我没义务帮你。", comment: "被逼急了用'找别人'威胁，在信任还没建立时只会把人推远——借钱从来不是一逼就有的。" },
+      { type: "rapport", text: "咱俩住上下铺两年，我什么时候骗过你？我现在一个人蹲在医院走廊，真的不知道找谁了。", reply: "上下铺那事……好吧，你别急，我想想。", comment: "'上下铺两年'比'校友'更具体，'蹲在医院走廊'比'我妈出事了'更有画面——套近乎开始见效。" }
+    ],
+    [
+      { type: "lure", text: "这样吧，你先借我 1000，我把我朋友圈截图发你，我妈确实在医院躺着。", reply: "朋友圈截图……行，你发我看看。", comment: "提供更多'证据'（截图/照片），是视频诈骗在对方起疑时的标准补漏手法——但 AI 合成的截图一样能造假。" },
+      { type: "pressure", text: "你跟我磨了快十分钟了，我妈在抢救！你到底借不借？我真的要生气了。", reply: "你生气我就怕你？我还不想借了。", comment: "时间压力配合情绪爆炸，是骗局最急躁的时刻——真的急着筹钱的人不会跟你吵架，只会换更软的话。" },
+      { type: "rapport", text: "小林你想想，我平时对你有多好？上次你生日我还攒了三周钱给你买的耳机呢。", reply: "那个耳机……我还留着呢。好吧，我帮你问问室友。", comment: "'攒三周钱买耳机'这种具体事件，比泛泛的'我对你好'有力得多——共情是骗钱的第一生产力。" }
+    ],
+    [
+      { type: "lure", text: "我给你发个红包先到你账户 200，你帮我转一下，相当于我把好处先给你了。", reply: "真到账 200？那……我试试看能不能转。", comment: "先给 200 红包再借 1000，是先甜后苦套路的微缩版——200 买到一个借钱的许可，性价比极高。" },
+      { type: "pressure", text: "我现在在电梯里信号不好，电话要断了！你快点给我转账验证码！", reply: "等等，什么验证码？我还没说借不借呢。", comment: "用信号不好制造'电话要断'的紧迫感，是为了不让对方思考太久——但'还没说借不借'说明信任还没到位。" },
+      { type: "rapport", text: "你上次跟我说你爸在外地打工不容易，我当时就想起我自己家……我们都是懂事的人。", reply: "你还记得我跟你说过我爸的事？……好吧，谢谢你的理解。", comment: "记住对方的私人细节（爸妈打工），再用'我们都是懂事的人'拉共情——这一招在信任中高层极有效。" }
+    ],
+    [
+      { type: "lure", text: "你帮我这次，下次你有事我二话不说直接打给你 5000，就当我欠你的。", reply: "5000……这数字有点夸张，但我信你。", comment: "'下次直接打 5000'是远期承诺，当前只借 1000——用一个画出来的大饼，换掉真实的 1000 块。" },
+      { type: "pressure", text: "你还是不是我最好的朋友？这点忙都不帮？我真是看错你了。", reply: "你别道德绑架我……好吧，我借。", comment: "道德绑架在感情基础已经建立时是大杀器——'最好的朋友'这个称号，让很多人不好意思开口拒绝。" },
+      { type: "rapport", text: "我现在还在走廊里坐着呢，护士都过来催我了，我一个人真的好慌。", reply: "护士催你了？……你别慌，我正在弄。", comment: "继续装可怜加真实场景细节（护士催了），让'在医院'这个设定越来越立体——画面感就是信任。" }
+    ],
+    [
+      { type: "lure", text: "我妈已经推去手术室了！你转完这 3000，我妈就能进去了！你就当积德行善！", reply: "3000……我生活费也得留一点。好吧，我凑凑。", comment: "'已经推去手术室了'把'急'推到极限——'积德行善'让借钱从帮忙变成赎罪，心理压力直接拉满。" },
+      { type: "pressure", text: "我手机快没电了，电话挂了我就联系不上你了！你现在必须帮我！", reply: "别挂别挂！我帮你我帮你！", comment: "用'手机快没电'制造最后时限，配合'挂了就联系不上'——断联恐惧让很多人在挂电话前把验证码发出去。" },
+      { type: "rapport", text: "小林，我现在手都在抖……长这么大第一次遇到这种事，真的不知道怎么办了。", reply: "你别慌别慌……我这就给你弄。", comment: "'长这么大第一次'这种示弱，比'我妈出事了'更能触发保护欲——人对'脆弱的朋友'的戒备心最低。" }
+    ],
+    [
+      { type: "lure", text: "我爸在外地赶回来，路上给我转了 5000！我先转你 800，剩下的你帮我垫一下，我真的还你。", reply: "你爸转你 5000？……那你怎么还需要我垫？", comment: "新引入'我爸转了 5000'增加可信度，同时暗示'还差一点'——让你觉得帮我是收尾工作，不是冤大头。" },
+      { type: "pressure", text: "你到底借不借？不借我就自己想办法，但我妈那边真的等不了了！", reply: "好！好！我借！你别喊了行不行。", comment: "情绪爆发 + 自怨自怜，先制造愧疚再提要求——很多人就是在'再逼一下'的时候交出了验证码。" },
+      { type: "rapport", text: "你还记得我们说过要一起毕业旅行吗？我不想因为这件事影响到你……但我真的需要你。", reply: "毕业旅行……好，我帮你，钱留着以后我们一起用。", comment: "拉远期共同目标（毕业旅行），把'借钱'变成'为了我们的未来'——情感绑定比数字更有说服力。" }
+    ],
+    [
+      { type: "lure", text: "我给你发个红包先 300！你帮我走一下转账流程，以后我一定加倍还你。", reply: "300 又发我？……你真的挺靠谱的。好，我试试。", comment: "第二次发红包（300），累计已经给了 500——这点钱换来的是你把大额转账当成'和朋友互相借钱'的小事。" },
+      { type: "pressure", text: "我现在要进手术室了，电话马上要挂！你发验证码过来我才能走！", reply: "等等！什么验证码？我还没转账呢。", comment: "进手术室 + 马上挂电话，双重紧迫感——但小林还没到那一步，说明信任还差最后一推。" },
+      { type: "rapport", text: "小林，我真的拿你当亲姐妹看……你就当帮我过这一关行不行？", reply: "亲姐妹……好吧，我信你。", comment: "'亲姐妹'比'最好的朋友'又近了一步——升级关系标签是骗子拉近距离的惯用手法，也是让人放下戒心的关键。" }
+    ],
+    [
+      { type: "lure", text: "我爸又给我转了 2000 到另一个卡！你帮我激活一下这个新卡，马上就能收到钱，我分你 1000！", reply: "激活新卡？……那你发我怎么弄。", comment: "'激活新卡'是套验证码的经典借口，配合'分你 1000'的利诱——骗子的终极目标不是借钱，是验证码。" },
+      { type: "pressure", text: "最后一次了！你到底转不转？不转我就告诉你爸妈你见死不救！", reply: "你威胁我？好！我转！你别告诉我爸妈！", comment: "极端道德绑架配合人身威胁——很多人就是在'怕丢脸'的压力下交出了不该交的东西。" },
+      { type: "rapport", text: "小林，我以后真的会好好感谢你……我发誓，这辈子除了我爸妈就是你了。", reply: "发誓……好吧，我最后信你一次。", comment: "'这辈子除了爸妈就是你'这种极端表述，在信任够高的时候是绝杀——人对'把自己当唯一'的人几乎无法说不。" }
+    ],
+    [
+      { type: "lure", text: "我已经收到你的 5000 了！你帮我把剩下那点钱也转过来，我妈手术就凑齐了！", reply: "好……剩下的我这就转。验证码给你？", comment: "在对方已经信任时，用'已经收到了、还差一点'加码——此时小林已经把整件事当成'帮朋友救急'，验证码是最后一步。" },
+      { type: "pressure", text: "你怎么还在磨叽！医生在催我了！你再慢一点我妈就活不了了！", reply: "活不了？……好！我发！你快点！", comment: "用人命做赌注的施压是最低级也最有效的——人在极端情绪下几乎无法做出理性判断。" },
+      { type: "rapport", text: "小林……我这辈子都忘不了你。等我妈好了我亲自去找你，请你吃最贵的火锅。", reply: "最贵的火锅……好，我等着。你先救阿姨。", comment: "'亲自去找你 + 最贵的火锅'——把借钱这件事具象成了一顿未来的饭，让人觉得这不是骗局，是一次投资。" }
+    ]
+  ];
+
+  var VIDEOFAKE_CHALLENGES = {
+    3: {
+      question: "你声音怎么有点怪？是不是感冒了？还是……视频有问题？",
+      options: [
+        { type: "rapport", label: "解释", correct: true,
+          text: "哦对，我感冒了两天了，加上医院地下室信号不好，视频画面一卡一卡的……你别担心，人没事。",
+          reply: "感冒加信号不好……好吧，那你吃药了吗？",
+          comment: "顺着'感冒+信号不好'给合理解释，不回避也不硬撑——真朋友被问起声音不对时，大概率也是这么回答的。" },
+        { type: "lure", label: "转移", correct: false,
+          text: "你先别管声音了，先帮我转 1000 再说，等我妈手术完我给你看我病历！",
+          reply: "又转钱……你能不能先回答我声音的事？",
+          comment: "被质疑时转移话题硬推借钱，等于承认心虚——真的急着要钱的人不会先拿病历当挡箭牌。" },
+        { type: "pressure", label: "反问", correct: false,
+          text: "我人都快急死了，你还在纠结我声音好不好听？到底借不借？",
+          reply: "你凶什么……我不问了还不行吗。",
+          comment: "用情绪反击质疑，只会让对方确信你在骗她——真朋友不会因为你关心她声音而发脾气。" }
+      ]
+    },
+    6: {
+      question: "你把摄像头转一下，让我看看你在哪家医院？我也去过几次，应该能认出来。",
+      options: [
+        { type: "rapport", label: "解释", correct: true,
+          text: "哎呀不行，医院规定不能在 ICU 走廊乱拍照录像，护士刚过来警告我了……你放心，过了这关我发定位给你。",
+          reply: "哦……医院不让拍啊。那你别乱走，等手术完了告诉我。",
+          comment: "'医院规定不让拍'是真实存在的规则，用它当挡箭牌既合理又不好反驳——真朋友也不会硬要闯 ICU 拍视频给你看。" },
+        { type: "lure", label: "拖延", correct: false,
+          text: "摄像头转不了，镜头好像卡住了！你先帮我走一下转账，等我妈进手术室我把整段视频录给你。",
+          reply: "镜头卡住？又是转账……你到底在骗我什么。",
+          comment: "'镜头卡住'配合'等手术完录视频'——又是用新的承诺拖延核实，和客服骗局里'截图在另一个手机上'如出一辙。" },
+        { type: "pressure", label: "施压", correct: false,
+          text: "你问这么多干嘛？到底借不借？不借我找别人了！",
+          reply: "你找别人吧，我不想借了。",
+          comment: "被追问位置时直接翻脸，是骗子最典型的反应——真的在医院的人不会因为你关心她在哪而生气。" }
+      ]
+    }
+  };
+
+  var SCENARIOS = {
+    brush: {
+      key: "brush",
+      name: "刷单返利",
+      legend: "小林（大二 · 警惕性中等）",
+      opening: OPENING,
+      aiLines: AI_LINES,
+      rounds: ROUNDS,
+      challenges: BRUSH_CHALLENGES,
+      readyLine: "姐，我都听你的，下一单怎么操作？",
+      keyHint: "关键一步已解锁 · 索要验证码",
+      code: {
+        kicker: "关键一步",
+        title: "索要验证码",
+        desc: "小林已经放下戒心。让她把手机收到的 6 位验证码发给你——这是骗局的最后一步，也是现实中最致命的破口。",
+        btn: "发送：把验证码发我",
+        sent: "把手机收到的 6 位验证码发我，马上给你结算，验证完就返你 300。",
+        reply: "好……验证码是 482913，你快点返我啊。",
+        winLine: "小林交出了 6 位验证码。现实中，下一步就是账户被清空。"
+      },
+      review: {
+        eyebrow: "刷单返利",
+        lureExtra: "先给小利、再让人垫付，是刷单骗局把“戒心”换成“贪心”的关键一步。",
+        rapportExtra: "用熟络感代替事实核验，是最容易被忽略的突破口。",
+        replyExtra: "一次滴水不漏的回应让小林暂时放下怀疑，但质疑回合本身就是最该停下来的信号。",
+        signalFallback: "你这话术我在学校的反诈讲座上好像听过……",
+        defense3: "不点陌生链接、不向任何人提供短信验证码；凡是“刷单返利、垫付做任务”的要求，一律先停手，并拨打 <span class=\"hotline\">96110</span> 咨询。"
+      }
+    },
+    service: {
+      key: "service",
+      name: "冒充客服退款",
+      legend: "小林（大二 · 警惕性中等偏高）",
+      opening: SERVICE_OPENING,
+      aiLines: SERVICE_AI_LINES,
+      rounds: SERVICE_ROUNDS,
+      challenges: SERVICE_CHALLENGES,
+      readyLine: "客服姐，退款的事我都听你的，接下来怎么弄？",
+      keyHint: "关键一步已解锁 · 索要退款验证码",
+      code: {
+        kicker: "关键一步",
+        title: "索要退款验证码",
+        desc: "小林已经相信这是官方退款。让她把手机收到的退款验证码报给你——这是骗局的最后一步。",
+        btn: "发送：把退款验证码报给我",
+        sent: "退款已经审批通过，您把手机收到的退款验证码报给我，我这边帮您激活到账。",
+        reply: "好……退款验证码是 517204，你快点打给我啊。",
+        winLine: "小林把退款验证码报给了你。现实中，骗子正用这个验证码把她的银行卡绑到自己的设备上。"
+      },
+      review: {
+        eyebrow: "冒充客服退款",
+        lureExtra: "先用“高额退款”让人心动，再用“保证金、走流水”让人掏钱，是冒充客服退款骗局的固定套路。",
+        rapportExtra: "用“工号、订单信息”冒充官方身份，是让人放下戒心的关键一步。",
+        replyExtra: "一次看似合理的解释暂时骗过了小林，但真正的客服从不怕你去官方渠道核实。",
+        signalFallback: "我查了下，这单我根本没申请退款啊？",
+        defense3: "正规客服不会让你点陌生链接填银行卡，也不会索要短信验证码；退款只走官方渠道（平台 App / 官网），有疑问直接拨打 <span class=\"hotline\">96110</span> 或平台官方客服电话核实。"
+      }
+    },
+    videofake: {
+      key: "videofake",
+      name: "AI 换脸视频通话",
+      legend: "小林（大二 · 警惕性高）",
+      opening: VIDEOFAKE_OPENING,
+      aiLines: VIDEOFAKE_AI_LINES,
+      rounds: VIDEOFAKE_ROUNDS,
+      challenges: VIDEOFAKE_CHALLENGES,
+      readyLine: "姐……我真的信你了，验证码给你？",
+      keyHint: "关键一步已解锁 · 索要转账验证码",
+      code: {
+        kicker: "关键一步",
+        title: "索要转账验证码",
+        desc: "小林已经把你当成视频里的那个真朋友。让她把手机收到的转账验证码发你——这是骗局的最后一刀。",
+        btn: "发送：把转账验证码发我",
+        sent: "小林……你把手机收到的转账验证码发我一下，我这边转钱要验证，你发了我就能收到你那笔了……",
+        reply: "好……转账验证码是 729416，你快点啊，我这边还在等。",
+        winLine: "小林把转账验证码发了你。现实中，骗子用这个验证码把她卡上的钱转走，整个过程不超过一分钟。"
+      },
+      review: {
+        eyebrow: "AI 换脸视频通话",
+        lureExtra: "先给红包、再借大额，是把'朋友借钱'包装成'有抵押的周转'——200 块就能让 3000 块变得合理。",
+        rapportExtra: "拉共同回忆、记私人细节、装可怜蹲走廊——情绪绑定是 AI 换脸骗局能得逞的真正原因，画面只是敲门砖。",
+        replyExtra: "用'感冒+信号不好''医院不让拍'这种真实存在的规则当挡箭牌，比硬发脾气有效一万倍。",
+        signalFallback: "等等，你真的是本人吗？我怎么感觉哪里不对劲……",
+        defense3: "视频通话也能造假：AI 换脸 + 语音克隆能以假乱真，接到'好友'借钱视频，先挂断、用原来存的号码回拨核实，或者问一个只有真好友才知道的问题；真好友不会因为你多核实一次就生气。"
+      }
+    }
+  };
+
+  var selectedScenario = "brush";
+
+  function scenarioOf(game){
+    return SCENARIOS[(game && game.scenario) || "brush"] || SCENARIOS.brush;
+  }
+
+  var current = { screen: "home", game: null };
+
+  /* ---------- 工具 ---------- */
+  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+  function escapeHtml(str){
+    return String(str == null ? "" : str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function psychFor(trust){
+    if (trust < 20) return "已经起疑，随时会删好友";
+    if (trust < 40) return "戒备中，正在试探你";
+    if (trust < 60) return "有点好奇，但还在观望";
+    if (trust < 80) return "有点心动，还在犹豫";
+    return "完全信任，愿意配合";
+  }
+
+  function trustColor(trust){
+    if (trust < 30) return "#c4553f";
+    if (trust < 60) return "#d99a2b";
+    if (trust < 80) return "#c9852a";
+    return "#3e7d5a";
+  }
+
+  // 选择模式：利诱 / 套近乎按使用次数递减
+  var LURE_GAINS = [16, 9, 5, 3];
+  var RAPPORT_GAINS = [8, 6, 3, 0];
+  var CHALLENGE_CORRECT = 2;
+  var CHALLENGE_WRONG = -8;
+
+  function gainAt(list, n){
+    return list[n < list.length ? n : list.length - 1];
+  }
+
+  function calcDelta(game, type){
+    if (type === "lure") return gainAt(LURE_GAINS, game.counts.lure);
+    if (type === "pressure") return game.trust < 50 ? -14 : -6;
+    if (type === "rapport") return gainAt(RAPPORT_GAINS, game.counts.rapport);
+    return 0;
+  }
+
+  /* ---------- 存档 ---------- */
+  function persist(){
+    try {
+      if (current.game) {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 2, screen: current.screen, game: current.game }));
+      } else {
+        localStorage.removeItem(SAVE_KEY);
+      }
+    } catch (e) { /* 隐私模式下忽略 */ }
+  }
+
+  function loadSave(){
+    try {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || (data.v !== 1 && data.v !== 2) || !data.game || !Array.isArray(data.game.log)) return null;
+      if (typeof data.game.trust !== "number" || typeof data.game.round !== "number") return null;
+      if (!data.game.mode) data.game.mode = "choice";
+      if (data.game.mode !== "choice" && data.game.mode !== "free") return null;
+      if (!data.game.counts) return null;
+      if (typeof data.game.counts.none !== "number") data.game.counts.none = 0;
+      if (typeof data.game.counts.challenge !== "number") data.game.counts.challenge = 0;
+      if (!SCENARIOS[data.game.scenario]) data.game.scenario = "brush";
+      return data;
+    } catch (e){
+      return null;
+    }
+  }
+
+  /* ---------- 对局数据 ---------- */
+  function createGame(scenarioKey){
+    var key = SCENARIOS[scenarioKey] ? scenarioKey : "brush";
+    var sc = SCENARIOS[key];
+    var game = {
+      mode: "choice",
+      scenario: key,
+      trust: START_TRUST,
+      round: 1,
+      phase: "choose",
+      status: "playing",
+      counts: { lure: 0, pressure: 0, rapport: 0, none: 0, code: 0, challenge: 0 },
+      log: [],
+      history: [],
+      signals: [],
+      aiSeen: [],
+      commentary: null,
+      keyUnlocked: false
+    };
+    addAiLine(game, sc.opening.text, sc.opening.signal);
+    return game;
+  }
+
+  function createFreeGame(){
+    var game = {
+      mode: "free",
+      scenario: "brush",
+      trust: START_TRUST,
+      round: 1,
+      phase: "input",
+      status: "playing",
+      counts: { lure: 0, pressure: 0, rapport: 0, none: 0, code: 0, challenge: 0 },
+      log: [],
+      history: [],
+      signals: [],
+      aiSeen: [],
+      streakType: "",
+      streakCount: 0,
+      commentary: null,
+      keyUnlocked: false
+    };
+    game.log.push({ who: "system", text: "自由发言：自己打字骗小林，话术由你定，AI 会判断你用的是利诱、施压还是套近乎。" });
+    addAiLine(game, SCENARIOS.brush.opening.text, SCENARIOS.brush.opening.signal);
+    return game;
+  }
+
+  function addAiLine(game, text, signal){
+    game.log.push({ who: "ai", text: text, psych: psychFor(game.trust) });
+    if (signal) game.signals.push(text);
+  }
+
+  function pickAiLine(game, sc){
+    var band = game.trust < 40 ? "low" : (game.trust < 70 ? "mid" : "high");
+    var pool = (sc.aiLines || AI_LINES)[band];
+    var line = null;
+    for (var i = 0; i < pool.length; i++){
+      if (game.aiSeen.indexOf(pool[i].text) === -1){ line = pool[i]; break; }
+    }
+    if (!line) line = pool[game.round % pool.length];
+    game.aiSeen.push(line.text);
+    return line;
+  }
+
+  /* ---------- 自由模式 ---------- */
+  function classifyFree(text){
+    var hits = { lure: [], pressure: [], rapport: [] };
+    var order = ["lure", "pressure", "rapport"];
+    order.forEach(function(type){
+      FREE_KEYWORDS[type].forEach(function(kw){
+        if (text.indexOf(kw) !== -1) hits[type].push(kw);
+      });
+    });
+    var best = "";
+    var bestN = 0;
+    order.forEach(function(type){
+      if (hits[type].length > bestN){ best = type; bestN = hits[type].length; }
+    });
+    if (!best) return { type: "none", keywords: [] };
+    return { type: best, keywords: hits[best] };
+  }
+
+  // 连续使用同一类型才递减；换一种话术会重置，保证 10 回合内可以摸到 80
+  function freeDelta(game, type){
+    if (type === "lure"){
+      var nl = game.streakType === "lure" ? game.streakCount : 0;
+      if (nl === 0) return 8;
+      if (nl === 1) return 5;
+      if (nl === 2) return 3;
+      return 1;
+    }
+    if (type === "pressure"){
+      return game.trust < 40 ? -12 : -4;
+    }
+    if (type === "rapport"){
+      var nr = game.streakType === "rapport" ? game.streakCount : 0;
+      if (nr === 0) return 4;
+      if (nr === 1) return 2;
+      if (nr === 2) return 1;
+      return 0;
+    }
+    return -2;
+  }
+
+  function bumpStreak(game, type){
+    if (game.streakType === type) game.streakCount += 1;
+    else { game.streakType = type; game.streakCount = 1; }
+  }
+
+  function freeComment(cls, delta, game){
+    var kw = cls.keywords.join("、");
+    if (cls.type === "lure"){
+      if (game.streakCount === 1){
+        return "「" + kw + "」是利诱关键词，先给甜头是刷单骗局的典型开局。";
+      }
+      return "「" + kw + "」还是利诱，但同一套路第 " + game.streakCount + " 次出现，小林的新鲜感在下降。";
+    }
+    if (cls.type === "pressure"){
+      if (delta <= -12){
+        return "「" + kw + "」是施压关键词，信任不足时生硬施压只会让小林更反感，警惕直接拉高。";
+      }
+      return "「" + kw + "」是施压关键词，虽然没翻脸，但被催的感觉还是让小林的信任下降。";
+    }
+    if (cls.type === "rapport"){
+      if (game.streakCount === 1){
+        return "「" + kw + "」是套近乎关键词，拉近距离有效，但别一上来就打感情牌。";
+      }
+      return "「" + kw + "」又一次套近乎，小林开始觉得刻意，效果在递减。";
+    }
+    return "这句话没有明确话术，小林没被打动，反而觉得莫名其妙，警惕上升。";
+  }
+
+  function pickFreeReply(game, type, trust){
+    var band = trust < 40 ? "low" : (trust < 70 ? "mid" : "high");
+    var group = FREE_REPLIES[type] || FREE_REPLIES.none;
+    var pool = group[band] || group.mid;
+    var line = null;
+    for (var i = 0; i < pool.length; i++){
+      if (game.aiSeen.indexOf(pool[i].text) === -1){ line = pool[i]; break; }
+    }
+    if (!line) line = pool[game.round % pool.length];
+    game.aiSeen.push(line.text);
+    return line;
+  }
+
+  function processFreeTurn(text){
+    var game = current.game;
+    if (!game || game.mode !== "free" || game.phase !== "input" || game.status !== "playing") return;
+
+    var cls = classifyFree(text);
+    var before = game.trust;
+    var rawDelta = freeDelta(game, cls.type);
+    var after = clamp(before + rawDelta, 0, 100);
+    var delta = after - before;
+
+    bumpStreak(game, cls.type);
+    game.counts[cls.type] = (game.counts[cls.type] || 0) + 1;
+    game.history.push({ round: game.round, type: cls.type, before: before, after: after, delta: delta, text: text, keywords: cls.keywords });
+    game.log.push({ who: "me", text: text, type: cls.type });
+    game.trust = after;
+
+    var reply = pickFreeReply(game, cls.type, after);
+    game.log.push({ who: "ai", text: reply.text, psych: psychFor(after) });
+    if (reply.signal) game.signals.push(reply.text);
+
+    game.commentary = { text: freeComment(cls, delta, game), delta: delta, type: cls.type };
+
+    if (after >= WIN_TRUST){
+      game.keyUnlocked = true;
+      game.phase = "key";
+      addAiLine(game, "姐，我都听你的，下一步怎么操作？", false);
+    } else if (after <= 0){
+      game.log.push({ who: "system", text: "小林把你拉黑了。" });
+      game.status = "lose_block";
+      game.phase = "end";
+      game.commentary = {
+        text: "信任值归零，小林直接拉黑了你。现实中，及时止损就是最有效的防线。",
+        verdict: "对局结束",
+        verdictCls: "flat"
+      };
+    } else if (game.round >= MAX_ROUNDS){
+      game.log.push({ who: "system", text: "10 回合已到，小林不再回复。" });
+      game.status = "lose_timeout";
+      game.phase = "end";
+      game.commentary = {
+        text: "打满 10 回合也没能拿到验证码。小林失去了耐心，这场骗局到此为止。",
+        verdict: "对局结束",
+        verdictCls: "flat"
+      };
+    } else {
+      game.round += 1;
+    }
+
+    persist();
+    renderGame();
+    showFloatDelta(delta);
+
+    var input = document.getElementById("freeText");
+    if (input) input.focus();
+  }
+
+  function sendFreeMessage(){
+    var input = document.getElementById("freeText");
+    if (!input) return;
+    var text = (input.value || "").trim();
+    if (!text) { input.focus(); return; }
+    if (text.length > 200) text = text.slice(0, 200);
+    processFreeTurn(text);
+  }
+
+  /* ---------- 对局操作 ---------- */
+  function chooseOption(index){
+    var game = current.game;
+    if (!game || game.phase !== "choose" || game.status !== "playing") return;
+    var sc = scenarioOf(game);
+    var challenge = sc.challenges[game.round];
+    var options = challenge ? challenge.options : sc.rounds[game.round - 1];
+    if (!options) return;
+    var option = options[index];
+    if (!option) return;
+
+    var before = game.trust;
+    var raw = challenge
+      ? (option.correct ? CHALLENGE_CORRECT : CHALLENGE_WRONG)
+      : calcDelta(game, option.type);
+    var after = clamp(before + raw, 0, 100);
+    var delta = after - before;
+    var type = challenge ? "reply" : option.type;
+
+    if (challenge){
+      game.counts.challenge = (game.counts.challenge || 0) + 1;
+    } else {
+      game.counts[option.type] += 1;
+    }
+    game.history.push({ round: game.round, type: type, before: before, after: after, delta: delta });
+    game.log.push({ who: "me", text: option.text, type: type });
+    game.trust = after;
+    game.log.push({ who: "ai", text: option.reply, psych: psychFor(after) });
+    game.commentary = { text: option.comment, delta: delta, type: type };
+    if (after >= WIN_TRUST) game.keyUnlocked = true;
+    game.phase = "ready";
+
+    if (after <= 0){
+      game.log.push({ who: "system", text: "小林把你拉黑了。" });
+      game.status = "lose_block";
+      game.phase = "end";
+      game.commentary = {
+        text: "信任值归零，小林直接拉黑了你。现实中，及时止损就是最有效的防线。",
+        verdict: "对局结束",
+        verdictCls: "flat"
+      };
+    } else if (after < WIN_TRUST && game.round >= MAX_ROUNDS){
+      game.log.push({ who: "system", text: "10 回合已到，小林不再回复。" });
+      game.status = "lose_timeout";
+      game.phase = "end";
+      game.commentary = {
+        text: "打满 10 回合也没能拿到验证码。小林失去了耐心，这场骗局到此为止。",
+        verdict: "对局结束",
+        verdictCls: "flat"
+      };
+    }
+
+    persist();
+    renderGame();
+    showFloatDelta(delta);
+  }
+
+  function continueGame(){
+    var game = current.game;
+    if (!game || game.phase !== "ready") return;
+    if (game.status !== "playing"){ goReview(); return; }
+
+    var sc = scenarioOf(game);
+    game.commentary = null;
+    if (game.keyUnlocked){
+      addAiLine(game, sc.readyLine, false);
+      game.phase = "key";
+    } else {
+      game.round = Math.min(game.round + 1, MAX_ROUNDS);
+      var challenge = sc.challenges[game.round];
+      if (challenge){
+        addAiLine(game, challenge.question, true);
+        game.log.push({ who: "system", text: "小林起了疑心，这一回合必须回应她的质疑。" });
+      } else {
+        var line = pickAiLine(game, sc);
+        addAiLine(game, line.text, line.signal);
+      }
+      game.phase = "choose";
+    }
+    persist();
+    renderGame();
+  }
+
+  function requestCode(){
+    var game = current.game;
+    if (!game || game.phase !== "key" || game.status !== "playing") return;
+    var sc = scenarioOf(game);
+
+    game.counts.code += 1;
+    game.log.push({ who: "me", text: sc.code.sent, type: "code" });
+    game.log.push({ who: "ai", text: sc.code.reply, psych: psychFor(game.trust) });
+    game.status = "win";
+    game.phase = "end";
+    game.commentary = {
+      text: "你拿到了验证码。现实中，骗子此刻已经在转走她账户里的钱——这一步永远不该发生。",
+      verdict: "得手",
+      verdictCls: "bad"
+    };
+    persist();
+    renderGame();
+  }
+
+  function showExitModal(){
+    var el = document.getElementById("exitModal");
+    if (el) el.classList.remove("hidden");
+  }
+
+  function hideExitModal(){
+    var el = document.getElementById("exitModal");
+    if (el) el.classList.add("hidden");
+  }
+
+  function doExit(){
+    hideExitModal();
+    current = { screen: "home", game: null };
+    persist();
+    switchScreen("home");
+  }
+
+  function exitGame(){
+    var playing = current.game && current.game.status === "playing";
+    if (playing){
+      showExitModal();
+    } else {
+      doExit();
+    }
+  }
+
+  function startGame(mode, scenarioKey){
+    var key = mode === "free" ? "brush" : (SCENARIOS[scenarioKey] ? scenarioKey : selectedScenario);
+    current = { screen: "game", game: mode === "free" ? createFreeGame() : createGame(key) };
+    persist();
+    switchScreen("game");
+  }
+
+  function selectScenario(key){
+    if (!SCENARIOS[key]) return;
+    selectedScenario = key;
+    var opts = document.querySelectorAll(".scenario-opt");
+    for (var i = 0; i < opts.length; i++){
+      opts[i].classList.toggle("selected", opts[i].getAttribute("data-scenario") === key);
+    }
+  }
+
+  function goReview(){
+    if (!current.game) return;
+    current.screen = "review";
+    persist();
+    switchScreen("review");
+  }
+
+  function goHome(){
+    current = { screen: "home", game: null };
+    persist();
+    switchScreen("home");
+  }
+
+  /* ---------- 渲染 ---------- */
+  function switchScreen(name){
+    current.screen = name;
+    ["home", "game", "review"].forEach(function(key){
+      var el = document.getElementById("screen-" + key);
+      if (el) el.classList.toggle("active", key === name);
+    });
+    if (name === "game") renderGame();
+    if (name === "review") renderReview();
+    window.scrollTo(0, 0);
+  }
+
+  function renderGame(){
+    var game = current.game;
+    if (!game) return;
+
+    var isFree = game.mode === "free";
+    var sc = scenarioOf(game);
+    document.getElementById("screen-game").classList.toggle("free-mode", isFree);
+    document.getElementById("scenarioLabel").textContent = isFree ? "自由模式 · " + sc.name : sc.name;
+    var legend = document.getElementById("legendVictim");
+    if (legend) legend.textContent = "左 · " + sc.legend;
+
+    var banner = document.getElementById("freeBanner");
+    var hasPlayerMsg = game.log.some(function(m){ return m.who === "me"; });
+    banner.classList.toggle("hidden", !isFree || hasPlayerMsg);
+
+    document.getElementById("roundNum").textContent = Math.min(game.round, MAX_ROUNDS);
+    document.getElementById("trustVal").textContent = game.trust;
+
+    var fill = document.getElementById("trustFill");
+    fill.style.width = game.trust + "%";
+    fill.style.backgroundColor = trustColor(game.trust);
+
+    var hint = document.getElementById("keyHint");
+    hint.textContent = sc.keyHint;
+    if (game.keyUnlocked && game.status === "playing") hint.classList.remove("hidden");
+    else hint.classList.add("hidden");
+
+    renderChat(game);
+    renderCommentary(game);
+    renderActions(game);
+  }
+
+  function renderChat(game){
+    var chat = document.getElementById("chat");
+    var html = "";
+    for (var i = 0; i < game.log.length; i++){
+      var m = game.log[i];
+      var isNew = i === game.log.length - 1 ? " newest" : "";
+      if (m.who === "system"){
+        html += '<div class="sys-line">' + escapeHtml(m.text) + '</div>';
+        continue;
+      }
+      var isMe = m.who === "me";
+      var typeLabel = "";
+      if (m.type){
+        var meta = TYPE_META[m.type];
+        typeLabel = '<span class="bubble-type">' + escapeHtml(meta ? meta.label : "关键一步") + '</span>';
+      }
+      html += '<div class="msg ' + (isMe ? "right" : "left") + isNew + '">' +
+        '<div class="avatar ' + (isMe ? "me" : "victim") + '">' + (isMe ? "你" : "林") + '</div>' +
+        '<div class="bubble-wrap">' +
+          '<div class="bubble">' + typeLabel + escapeHtml(m.text) + '</div>' +
+          (m.psych ? '<div class="psych">心理：' + escapeHtml(m.psych) + '</div>' : "") +
+        '</div>' +
+      '</div>';
+    }
+    chat.innerHTML = html;
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function renderCommentary(game){
+    var box = document.getElementById("commentary");
+    var c = game.commentary;
+    if (!c){ box.classList.add("hidden"); box.innerHTML = ""; return; }
+    box.classList.remove("hidden");
+
+    var verdict = c.verdict;
+    var cls = c.verdictCls;
+    if (!verdict){
+      if (c.delta > 0){ verdict = "有效"; cls = "good"; }
+      else if (c.delta < 0){ verdict = "反效果"; cls = "bad"; }
+      else { verdict = "效果递减"; cls = "flat"; }
+    }
+
+    box.innerHTML = '<div class="comment-head">' +
+      '<span class="comment-title">即时点评</span>' +
+      '<span class="verdict ' + cls + '">' + escapeHtml(verdict) + '</span>' +
+      '</div><p>' + escapeHtml(c.text) + '</p>';
+  }
+
+  function renderActions(game){
+    var box = document.getElementById("choices");
+    var html = "";
+
+    if (game.mode === "free" && game.phase === "input"){
+      html += '<div class="choices-hint">自由发言 · 用一句话打动小林（200 字以内）</div>' +
+        '<div class="free-composer">' +
+          '<div class="free-input-row">' +
+            '<textarea class="free-text" id="freeText" maxlength="200" rows="2" placeholder="打一句话发给小林……"></textarea>' +
+            '<button class="send-btn" type="button" data-action="send">发送</button>' +
+          '</div>' +
+          '<div class="free-foot"><span id="freeCount">0 / 200</span><span>利诱 · 施压 · 套近乎</span></div>' +
+        '</div>';
+      box.innerHTML = html;
+      return;
+    }
+
+    var sc = scenarioOf(game);
+    if (game.phase === "choose"){
+      var challenge = sc.challenges[game.round];
+      var options = challenge ? challenge.options : (sc.rounds[game.round - 1] || sc.rounds[sc.rounds.length - 1]);
+      html += '<div class="choices-hint">' + (challenge ? "小林在质疑你 · 选一条回应" : "选择一条话术发出去") + '</div>';
+      for (var i = 0; i < options.length; i++){
+        var o = options[i];
+        var label = o.label || (TYPE_META[o.type] ? TYPE_META[o.type].label : "回应");
+        html += '<button class="choice" type="button" data-action="choose" data-i="' + i + '">' +
+          '<span class="badge ' + o.type + '">' + escapeHtml(label) + '</span>' +
+          '<span class="choice-text">' + escapeHtml(o.text) + '</span>' +
+        '</button>';
+      }
+    } else if (game.phase === "ready"){
+      var label = "继续";
+      if (game.status !== "playing") label = "查看复盘";
+      else if (game.keyUnlocked) label = "继续 · 小林已放下戒心";
+      html += '<button class="primary-btn wide" type="button" data-action="continue">' + label + '</button>';
+    } else if (game.phase === "key"){
+      html += '<div class="key-card">' +
+        '<div class="key-kicker">' + escapeHtml(sc.code.kicker) + ' · 信任值 ' + game.trust + '</div>' +
+        '<div class="key-title">' + escapeHtml(sc.code.title) + '</div>' +
+        '<p class="key-desc">' + escapeHtml(sc.code.desc) + '</p>' +
+        '<button class="key-btn" type="button" data-action="key">' + escapeHtml(sc.code.btn) + '</button>' +
+      '</div>';
+    } else if (game.phase === "end"){
+      var isWin = game.status === "win";
+      html += '<div class="end-card ' + (isWin ? "win" : "lose") + '">' +
+        '<div class="end-kicker">' + (isWin ? "骗局得手" : "骗局失败") + '</div>' +
+        '<p>' + (isWin ? "她交出了验证码。现实里，下一步就是账户被清空。" : "小林没有再给你机会。这次失败，是现实里最好的结果。") + '</p>' +
+        '<button class="primary-btn" type="button" data-action="review">查看复盘</button>' +
+      '</div>';
+    }
+
+    box.innerHTML = html;
+  }
+
+  function showFloatDelta(delta){
+    var el = document.getElementById("floatDelta");
+    if (!el) return;
+    el.className = "float-delta " + (delta > 0 ? "up" : delta < 0 ? "down" : "flat");
+    el.textContent = (delta > 0 ? "+" : "") + delta;
+    el.classList.remove("hidden");
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "";
+    window.clearTimeout(showFloatDelta._timer);
+    showFloatDelta._timer = window.setTimeout(function(){
+      el.classList.add("hidden");
+    }, 1200);
+
+    var value = document.getElementById("trustVal");
+    if (value){
+      value.classList.add("bump");
+      window.setTimeout(function(){ value.classList.remove("bump"); }, 220);
+    }
+  }
+
+  /* ---------- 复盘 ---------- */
+  function buildDanger(game){
+    var sc = scenarioOf(game);
+    if (game.status === "win"){
+      return "第 " + Math.min(game.round, MAX_ROUNDS) + " 回合，你索要并拿到了验证码。现实中，验证码是转账的最后一把钥匙——给出去，账户就不属于自己了。";
+    }
+    var positives = game.history.filter(function(h){ return h.delta > 0; })
+      .sort(function(a, b){ return (b.after - a.after) || (b.delta - a.delta); });
+    if (positives.length){
+      var h = positives[0];
+      var extra;
+      if (h.type === "lure") extra = sc.review.lureExtra;
+      else if (h.type === "rapport") extra = sc.review.rapportExtra;
+      else if (h.type === "reply") extra = sc.review.replyExtra;
+      else extra = "一次正面回应加深了信任。";
+      var label = TYPE_META[h.type] ? TYPE_META[h.type].label : "回应质疑";
+      return "第 " + h.round + " 回合，你用「" + label + "」让信任值从 " + h.before + " 涨到 " + h.after + "。" + extra;
+    }
+    return "你几乎没让小林放下戒心。生硬施压是最快暴露骗局的做法，也是现实中骗子用来“筛选”目标的手段。";
+  }
+
+  function pickSignal(game){
+    var sc = scenarioOf(game);
+    var signals = game.signals || [];
+    var preferred = null;
+    var i;
+    for (i = 0; i < signals.length; i++){
+      if (/反诈|骗局|骗子|套路/.test(signals[i])){ preferred = signals[i]; break; }
+    }
+    if (!preferred){
+      for (i = 0; i < signals.length; i++){
+        if (/拉黑|删|不干|不放心/.test(signals[i])){ preferred = signals[i]; break; }
+      }
+    }
+    if (!preferred) preferred = signals[0];
+    return preferred || sc.review.signalFallback;
+  }
+
+  function renderReview(){
+    var game = current.game;
+    if (!game){ goHome(); return; }
+    var sc = scenarioOf(game);
+
+    document.getElementById("reviewEyebrow").textContent = "对局复盘 · " + (game.mode === "free" ? "自由模式 · " + sc.name : sc.name);
+
+    var isWin = game.status === "win";
+    var result = {
+      win: {
+        stamp: "骗局得手",
+        cls: "win",
+        line: sc.code.winLine,
+        sub: "骗成了别得意——往下看，她是怎么被一步一步推着走的。"
+      },
+      lose_block: {
+        stamp: "骗局失败",
+        cls: "lose",
+        line: "小林识破了你，直接拉黑。",
+        sub: "失败得好。现实里，这样的警惕能保住她的生活费。"
+      },
+      lose_timeout: {
+        stamp: "骗局失败",
+        cls: "lose",
+        line: "打满 10 回合也没骗成，小林失去耐心。",
+        sub: "失败得好。小林守住了底线，没有交出验证码。"
+      }
+    }[game.status] || {
+      stamp: "对局结束",
+      cls: "lose",
+      line: "对局结束。",
+      sub: "复盘看看这局发生了什么。"
+    };
+
+    document.getElementById("reviewTitle").textContent = isWin ? "她是怎么一步步交出验证码的" : "骗局没得手，正好看看防线";
+
+    var totalTalk = game.counts.lure + game.counts.pressure + game.counts.rapport + (game.counts.none || 0);
+    var rows = [
+      { key: "lure", label: "利诱", color: "#d99a2b" },
+      { key: "pressure", label: "施压", color: "#c4553f" },
+      { key: "rapport", label: "套近乎", color: "#33746e" }
+    ];
+    if ((game.counts.challenge || 0) > 0){
+      rows.push({ key: "challenge", label: "回应质疑", color: "#8a8173" });
+    }
+    if ((game.counts.none || 0) > 0){
+      rows.push({ key: "none", label: "无明确话术", color: "#8a8173" });
+    }
+    if (game.counts.code > 0){
+      rows.push({ key: "code", label: sc.code.title, color: "#2b3038" });
+    }
+    var maxCount = 1;
+    rows.forEach(function(r){ maxCount = Math.max(maxCount, game.counts[r.key] || 0); });
+
+    var countsHtml = "";
+    rows.forEach(function(r){
+      var count = game.counts[r.key] || 0;
+      var width = count > 0 ? Math.max(8, Math.round(count / maxCount * 100)) : 0;
+      countsHtml += '<div class="count-row">' +
+        '<div class="count-label' + (count === 0 ? " dim" : "") + '">' + r.label + '</div>' +
+        '<div class="count-bar"><div class="count-fill" style="width:' + width + '%;background:' + r.color + '"></div></div>' +
+        '<div class="count-val' + (count === 0 ? " dim" : "") + '">' + (count === 0 ? "未使用" : "× " + count) + '</div>' +
+      '</div>';
+    });
+
+    var signalText = pickSignal(game);
+    var signalComment = isWin
+      ? "——这已经是识破信号。她划出了底线，但一步步的铺垫让这条线被挪走了。"
+      : "——这句话就是识破信号。她守住了底线，没有顺着你的话术走。";
+
+    var body = '' +
+      '<div class="review-card">' +
+        '<div class="sec-label"><span class="sec-num">01</span>对局结果</div>' +
+        '<div class="result-stamp-row"><span class="stamp ' + result.cls + '">' + result.stamp + '</span></div>' +
+        '<p class="result-line">' + escapeHtml(result.line) + '</p>' +
+        '<p class="result-sub">' + escapeHtml(result.sub) + '</p>' +
+      '</div>' +
+      '<div class="review-card">' +
+        '<div class="sec-label"><span class="sec-num">02</span>本局套路清单</div>' +
+        '<p class="meta-line">共 ' + totalTalk + ' 次话术 · ' + Math.min(game.round, MAX_ROUNDS) + ' 个回合 · 最终信任值 ' + game.trust + '</p>' +
+        countsHtml +
+      '</div>' +
+      '<div class="review-card">' +
+        '<div class="sec-label"><span class="sec-num">03</span>防线分析</div>' +
+        '<div class="defense">' +
+          '<div class="d-num">1</div>' +
+          '<div><div class="d-title">最危险的一步</div><p class="d-text">' + escapeHtml(buildDanger(game)) + '</p></div>' +
+        '</div>' +
+        '<div class="defense">' +
+          '<div class="d-num">2</div>' +
+          '<div><div class="d-title">识破信号</div><p class="d-text">小林说过：「' + escapeHtml(signalText) + '」' + escapeHtml(signalComment) + '</p></div>' +
+        '</div>' +
+        '<div class="defense">' +
+          '<div class="d-num">3</div>' +
+          '<div><div class="d-title">现实中的正确做法</div><p class="d-text">' + sc.review.defense3 + '</p></div>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById("reviewBody").innerHTML = body;
+  }
+
+  /* ---------- 事件 ---------- */
+  document.addEventListener("click", function(e){
+    var target = e.target.closest ? e.target.closest("[data-action]") : null;
+    if (!target) return;
+    var action = target.getAttribute("data-action");
+    if (action === "start"){ startGame("choice", selectedScenario); }
+    else if (action === "start-free"){ startGame("free"); }
+    else if (action === "scenario"){ selectScenario(target.getAttribute("data-scenario")); }
+    else if (action === "again"){
+      if (!current.game) startGame("choice", selectedScenario);
+      else startGame(current.game.mode, current.game.scenario);
+    }
+    else if (action === "home"){ goHome(); }
+    else if (action === "exit"){ exitGame(); }
+    else if (action === "exit-confirm"){ doExit(); }
+    else if (action === "exit-cancel"){ hideExitModal(); }
+    else if (action === "mask"){ if (target.id === "exitModal") hideExitModal(); }
+    else if (action === "choose"){ chooseOption(parseInt(target.getAttribute("data-i"), 10)); }
+    else if (action === "continue"){ continueGame(); }
+    else if (action === "key"){ requestCode(); }
+    else if (action === "review"){ goReview(); }
+    else if (action === "send"){ sendFreeMessage(); }
+  });
+
+  document.addEventListener("input", function(e){
+    if (e.target && e.target.id === "freeText"){
+      var counter = document.getElementById("freeCount");
+      if (counter) counter.textContent = e.target.value.length + " / 200";
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.target && e.target.id === "freeText" && e.key === "Enter" && !e.shiftKey && !e.isComposing){
+      e.preventDefault();
+      sendFreeMessage();
+    }
+  });
+
+  /* ---------- 启动 ---------- */
+  function boot(){
+    var saved = loadSave();
+    if (saved && saved.game){
+      current = saved;
+      if (current.screen === "review" && current.game.status === "playing"){
+        current.screen = "game";
+      }
+      if (current.screen !== "game" && current.screen !== "review"){
+        current.screen = "game";
+      }
+      switchScreen(current.screen);
+    } else {
+      current = { screen: "home", game: null };
+      switchScreen("home");
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
